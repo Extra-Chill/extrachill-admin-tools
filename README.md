@@ -10,19 +10,19 @@ The Extra Chill Admin Tools plugin consolidates administrative functionality for
 
 **ACTIVE DEVELOPMENT**
 
-- **Basic Structure**: Plugin framework established
-- **Admin Interface**: Settings page created with administrative tools
-- **Functionality**: Core admin tools implemented including tag migration, 404 error logging, and Festival Wire migration
-- **Integration**: Basic plugin integration with platform functionality
+- **Plugin Structure**: Complete plugin framework with proper file organization
+- **Admin Interface**: Settings page with tool registration system
+- **Core Tools**: Tag migration, 404 error logging, Festival Wire migration, session token cleanup
+- **Safety**: Plugin dependency checks ensure tools only load when required plugins are active
 
 ## 🚀 Features
 
 ### Current Implementation
-- **Admin Menu**: Settings page in WordPress admin
-- **Tag Migration**: Administrative tools for tag management and migration
-- **404 Error Logging**: Error logging and tracking functionality
-- **Festival Wire Migration**: Migration tools for Festival Wire content
-- **Security**: Administrator-only access with capability checks
+- **Tag Migration**: Bulk migrate tags to festival, artist, or venue taxonomies with search and pagination
+- **404 Error Logger**: Logs 404 errors with daily email reports and automatic cleanup
+- **Festival Wire Migration**: One-time migration tools for tags and authors (requires extrachill-news-wire plugin)
+- **Session Token Cleanup**: Admin notice and cleanup utility for legacy session token tables
+- **Plugin Safety**: Conditional loading based on plugin dependencies
 
 ### Planned Features
 - **Multisite Management**: Cross-site administration tools
@@ -38,18 +38,21 @@ The Extra Chill Admin Tools plugin consolidates administrative functionality for
 extrachill-admin-tools/
 ├── extrachill-admin-tools.php   # Main plugin file
 └── inc/
-    └── admin/
-        ├── admin-settings.php           # Admin interface
-        ├── tag-migration.php            # Tag migration tools
-        ├── 404-error-logger.php         # Error logging functionality
-        └── festival-wire-migration.php  # Festival Wire migration tools
+    ├── admin/
+    │   └── admin-settings.php          # Admin interface and settings page
+    └── tools/
+        ├── tag-migration.php           # Tag migration utilities
+        ├── 404-error-logger.php        # 404 error logging system
+        ├── festival-wire-migration.php # Festival Wire migration (conditional)
+        └── session-token-cleanup.php   # Session token cleanup utility
 ```
 
 ### Plugin Pattern
 - **Procedural Architecture**: Simple WordPress plugin development
-- **Admin Integration**: Standard WordPress admin menu system
-- **Security**: Proper capability checks and permission validation
-- **Modular Organization**: Structured file organization for future expansion
+- **Tool Registration**: Filter-based system for registering admin tools
+- **Conditional Loading**: Tools only load when required plugins are active
+- **Security**: Administrator-only access with proper capability checks
+- **Separation of Concerns**: Admin interface separate from tool implementations
 
 ## 📦 Installation
 
@@ -81,8 +84,8 @@ extrachill-admin-tools/
 ### Current Limitations
 - **No Build System**: Basic WordPress plugin without build tools
 - **No Dependencies**: Self-contained implementation
-- **Limited Functionality**: Placeholder admin interface only
-- **No Testing**: Test framework not yet implemented
+- **Basic Testing**: No automated test framework implemented
+- **Manual Operations**: Most tools require manual admin intervention
 
 ### Future Development Commands
 ```bash
