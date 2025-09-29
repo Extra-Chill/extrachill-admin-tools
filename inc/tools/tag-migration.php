@@ -1,8 +1,6 @@
 <?php
-
 if (!defined('ABSPATH')) exit;
 
-// Register tag migration tool with admin tools system
 add_filter('extrachill_admin_tools', function($tools) {
     $tools[] = array(
         'id' => 'tag-migration',
@@ -19,7 +17,6 @@ function tag_migration_admin_page() {
     $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
     $offset = ($paged - 1) * $per_page;
 
-    // Handle migration action
     $report = array();
     if (isset($_POST['tag_migration_action']) && isset($_POST['tag_ids']) && check_admin_referer('tag_migration_action')) {
         $tag_ids = array_map('intval', (array)$_POST['tag_ids']);
@@ -29,7 +26,6 @@ function tag_migration_admin_page() {
         }
     }
 
-    // Query tags
     $args = array(
         'taxonomy' => 'post_tag',
         'hide_empty' => false,
@@ -43,14 +39,12 @@ function tag_migration_admin_page() {
     $total_tags = wp_count_terms('post_tag', array('hide_empty' => false));
     $total_pages = ceil($total_tags / $per_page);
 
-    // Search form
     echo '<form method="get" style="margin-bottom:1em;">';
     echo '<input type="hidden" name="page" value="extrachill-admin-tools">';
     echo '<input type="text" name="s" value="' . esc_attr($search) . '" placeholder="Search tags...">';
     echo '<input type="submit" class="button" value="Search">';
     echo '</form>';
 
-    // Show report if migration was performed
     if (!empty($report)) {
         echo '<div class="notice notice-success"><ul>';
         foreach ($report as $line) {
@@ -59,7 +53,6 @@ function tag_migration_admin_page() {
         echo '</ul></div>';
     }
 
-    // Tag list form
     echo '<form method="post">';
     wp_nonce_field('tag_migration_action');
     echo '<table class="widefat fixed striped">';
@@ -80,7 +73,6 @@ function tag_migration_admin_page() {
     echo '</p>';
     echo '</form>';
 
-    // Pagination
     if ($total_pages > 1) {
         echo '<div class="tablenav"><div class="tablenav-pages">';
         for ($i = 1; $i <= $total_pages; $i++) {
@@ -94,28 +86,30 @@ function tag_migration_admin_page() {
         echo '</div></div>';
     }
 
-    // Select all JS
     echo '<script>document.getElementById("select-all-tags").addEventListener("change",function(e){var cbs=document.querySelectorAll("input[name=\"tag_ids[]\"]");for(var i=0;i<cbs.length;i++){cbs[i].checked=this.checked;}});</script>';
 }
 
+/**
+ * Creates taxonomy terms → reassigns posts → removes tag relations → cleanup orphans
+ */
 function tag_migration_perform_bulk($tag_ids, $taxonomy) {
     $report = array();
     foreach ($tag_ids as $tag_id) {
         $tag = get_term($tag_id, 'post_tag');
         if (!$tag || is_wp_error($tag)) continue;
-        // Create taxonomy term if not exists
+
         $term = term_exists($tag->slug, $taxonomy);
         if (!$term) {
             $term = wp_insert_term($tag->name, $taxonomy, array('slug' => $tag->slug));
         }
         $term_id = is_array($term) ? $term['term_id'] : $term;
-        // Get all posts with this tag
+
         $posts = get_objects_in_term($tag_id, 'post_tag');
         foreach ($posts as $post_id) {
             wp_set_object_terms($post_id, intval($term_id), $taxonomy, true);
             wp_remove_object_terms($post_id, intval($tag_id), 'post_tag');
         }
-        // Delete tag if no longer used
+
         $count = get_term($tag_id, 'post_tag')->count;
         if ($count === 0) {
             wp_delete_term($tag_id, 'post_tag');

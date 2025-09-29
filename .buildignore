@@ -1,0 +1,49 @@
+# Development Files
+vendor/
+node_modules/
+.git/
+.github/
+docs/
+tests/
+
+# Build Files
+build/
+dist/
+*.zip
+
+# Lock Files
+composer.lock
+package-lock.json
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Development Configuration
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Documentation (keep only essential)
+CLAUDE.md
+README.md
+.buildignore
+
+# Build Scripts
+build.sh
+
+# Test Files
+phpunit.xml
+phpunit.xml.dist
+
+# Logs
+*.log
+logs/

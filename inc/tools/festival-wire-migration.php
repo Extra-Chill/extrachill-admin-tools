@@ -1,8 +1,6 @@
 <?php
-
 if (!defined('ABSPATH')) exit;
 
-// Register festival wire migration with admin tools system (only if news-wire plugin is active)
 if (is_plugin_active('extrachill-news-wire/extrachill-news-wire.php')) {
     add_filter('extrachill_admin_tools', function($tools) {
         $tools[] = array(
@@ -16,7 +14,6 @@ if (is_plugin_active('extrachill-news-wire/extrachill-news-wire.php')) {
 }
 
 function festival_wire_migration_admin_page() {
-    // Handle tag migration
     $tag_migration_done = get_option('festival_wire_migration_done');
     if (isset($_POST['festival_wire_migrate']) && check_admin_referer('festival_wire_migrate_action')) {
         $report = festival_wire_perform_tag_to_festival_migration();
@@ -33,7 +30,6 @@ function festival_wire_migration_admin_page() {
         $tag_migration_done = true;
     }
 
-    // Handle author migration
     $author_migration_done = get_option('festival_wire_author_migration_done');
     if (isset($_POST['festival_wire_author_migrate']) && check_admin_referer('festival_wire_author_migrate_action')) {
         $new_author_id = intval($_POST['new_author_id']);
@@ -59,7 +55,6 @@ function festival_wire_migration_admin_page() {
     $festival_wire_count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'festival_wire'");
     ?>
 
-    <!-- Tag Migration Section -->
     <h3>Tag to Festival Migration</h3>
     <?php if ($tag_migration_done): ?>
         <div class="notice notice-success"><p><strong>Tag migration already completed.</strong></p></div>
@@ -73,7 +68,6 @@ function festival_wire_migration_admin_page() {
 
     <hr style="margin: 30px 0;">
 
-    <!-- Author Migration Section -->
     <h3>Festival Wire Author Migration</h3>
     <?php if ($author_migration_done): ?>
         <div class="notice notice-success"><p><strong>Author migration already completed.</strong></p></div>
@@ -104,10 +98,13 @@ function festival_wire_migration_admin_page() {
     <?php
 }
 
+/**
+ * Uses direct SQL for performance with large datasets and complex taxonomy operations
+ */
 function festival_wire_perform_tag_to_festival_migration() {
     global $wpdb;
     $report = array();
-    // 1. Get all tag IDs attached to any festival_wire post
+
     $tag_ids = $wpdb->get_col("
         SELECT DISTINCT tr.term_taxonomy_id
         FROM {$wpdb->term_relationships} tr
@@ -125,7 +122,7 @@ function festival_wire_perform_tag_to_festival_migration() {
             $tt_id
         ));
         if (!$tag) continue;
-        // Create festival term if not exists
+
         $festival_term = term_exists($tag->slug, 'festival');
         if (!$festival_term) {
             $festival_term = wp_insert_term($tag->name, 'festival', array('slug' => $tag->slug));
@@ -136,12 +133,12 @@ function festival_wire_perform_tag_to_festival_migration() {
             $tt_id
         ));
         if (empty($post_ids)) continue;
-        // Attach festival term to all these posts
+
         foreach ($post_ids as $post_id) {
             wp_set_object_terms($post_id, intval($festival_term_id), 'festival', true);
             wp_remove_object_terms($post_id, intval($tag->term_id), 'post_tag');
         }
-        // Optionally, delete tag if no longer used
+
         $count = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d",
             $tt_id
@@ -160,7 +157,6 @@ function festival_wire_perform_author_migration($new_author_id) {
     global $wpdb;
     $report = array();
 
-    // Validate the author ID exists
     $author = get_userdata($new_author_id);
     if (!$author) {
         $report[] = 'Error: Invalid author ID provided.';
@@ -174,7 +170,6 @@ function festival_wire_perform_author_migration($new_author_id) {
         return $report;
     }
 
-    // Perform the bulk update
     $updated = $wpdb->update(
         $wpdb->posts,
         array('post_author' => $new_author_id),

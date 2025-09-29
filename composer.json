@@ -1,0 +1,40 @@
+{
+    "name": "extrachill/admin-tools",
+    "description": "WordPress plugin providing centralized administrative tools for the Extra Chill platform ecosystem",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Chris Huber",
+            "email": "chubes@chubes.net",
+            "homepage": "https://chubes.net"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-coding-standards/wpcs": "^3.0",
+        "phpunit/phpunit": "^9.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ExtraChill\\AdminTools\\": "src/"
+        }
+    },
+    "scripts": {
+        "lint:php": "vendor/bin/phpcs --standard=WordPress --extensions=php .",
+        "lint:fix": "vendor/bin/phpcbf --standard=WordPress --extensions=php .",
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

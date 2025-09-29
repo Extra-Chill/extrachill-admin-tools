@@ -16,16 +16,16 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Plugin constants
 define('EXTRACHILL_ADMIN_TOOLS_VERSION', '1.0.0');
 define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-// Plugin activation hook
 register_activation_hook(__FILE__, 'extrachill_admin_tools_activate');
 
+/**
+ * Creates 404 logging table with optimized indexes for time-based queries
+ */
 function extrachill_admin_tools_activate() {
-    // Create 404 log table if it doesn't exist
     if (get_option('404_log_table_created') !== 'yes') {
         global $wpdb;
         $table_name = $wpdb->prefix . '404_log';
@@ -51,11 +51,7 @@ function extrachill_admin_tools_activate() {
         }
     }
 }
-
-// Include admin functionality
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/admin/admin-settings.php';
-
-// Include tools
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/tag-migration.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/404-error-logger.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/festival-wire-migration.php';

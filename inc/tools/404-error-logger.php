@@ -1,8 +1,6 @@
 <?php
-
 if (!defined('ABSPATH')) exit;
 
-// Register 404 error logger with admin tools system
 add_filter('extrachill_admin_tools', function($tools) {
     $tools[] = array(
         'id' => '404-error-logger',
@@ -36,14 +34,14 @@ function error_404_logger_toggle() {
     }
 }
 
-// Only run 404 logging if enabled
 if (get_option('extrachill_404_logger_enabled', 1)) {
 
-    // Log 404 errors
+    /**
+     * Excludes /event/ URLs to prevent logging expected 404s from calendar plugin
+     */
     function log_404_errors() {
         if (is_404()) {
             $url = esc_url($_SERVER['REQUEST_URI']);
-            // Skip logging if the URL starts with /event/
             if (preg_match('/^\/event\//', $url)) {
                 return;
             }
@@ -69,14 +67,11 @@ if (get_option('extrachill_404_logger_enabled', 1)) {
 
             if ($result === false) {
                 error_log("Error inserting 404 log: " . $wpdb->last_error);
-            } else {
-                error_log("404 log inserted successfully for URL: $url");
             }
         }
     }
     add_action('template_redirect', 'log_404_errors');
 
-    // Schedule a daily event to send the 404 error log email
     function schedule_404_log_email() {
         if (!wp_next_scheduled('send_404_log_email')) {
             wp_schedule_event(time(), 'daily', 'send_404_log_email');
@@ -84,7 +79,9 @@ if (get_option('extrachill_404_logger_enabled', 1)) {
     }
     add_action('wp', 'schedule_404_log_email');
 
-    // Send the 404 error log email
+    /**
+     * Compiles today's 404 errors into email report, then purges all data
+     */
     function send_404_log_email() {
         global $wpdb;
         $table_name = $wpdb->prefix . '404_log';
@@ -112,7 +109,6 @@ if (get_option('extrachill_404_logger_enabled', 1)) {
 
             wp_mail($admin_email, $subject, $message);
 
-            // Clear the log for the day and any entries older than the newest_time
             if ($newest_time) {
                 $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE time <= %s", $newest_time));
             }

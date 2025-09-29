@@ -1,31 +1,14 @@
 <?php
-/**
- * Session Token Table Cleanup
- *
- * One-time cleanup utility for removing legacy session token table.
- * Provides admin notice with button to safely remove the old database table
- * after migration to WordPress multisite authentication.
- *
- * @package ExtraChillAdminTools
- * @since 1.0.0
- */
-
 if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * One-time admin notice to clean up legacy session token table
- * Displays dismissible notice for administrators to remove old database table
- */
 add_action('admin_notices', 'ecat_session_token_cleanup_notice');
 function ecat_session_token_cleanup_notice() {
-    // Only show to administrators
     if (!current_user_can('administrator')) {
         return;
     }
 
-    // Only show if notice hasn't been dismissed
     if (get_option('ecat_session_token_cleanup_dismissed')) {
         return;
     }
@@ -33,7 +16,6 @@ function ecat_session_token_cleanup_notice() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'user_session_tokens';
 
-    // Only show if table exists
     if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
         return;
     }
@@ -69,12 +51,8 @@ function ecat_session_token_cleanup_notice() {
     <?php
 }
 
-/**
- * AJAX handler to clean up session token table
- */
 add_action('wp_ajax_ecat_cleanup_session_tokens', 'ecat_handle_session_token_cleanup');
 function ecat_handle_session_token_cleanup() {
-    // Verify nonce and permissions
     if (!wp_verify_nonce($_POST['nonce'], 'ecat_cleanup_session_tokens') || !current_user_can('administrator')) {
         wp_send_json_error('Unauthorized');
         return;
@@ -83,11 +61,9 @@ function ecat_handle_session_token_cleanup() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'user_session_tokens';
 
-    // Drop the table
     $result = $wpdb->query("DROP TABLE IF EXISTS $table_name");
 
     if ($result !== false) {
-        // Mark notice as dismissed
         update_option('ecat_session_token_cleanup_dismissed', true);
         wp_send_json_success('Session token table removed successfully');
     } else {
@@ -95,9 +71,6 @@ function ecat_handle_session_token_cleanup() {
     }
 }
 
-/**
- * Handle notice dismissal
- */
 add_action('wp_ajax_ecat_dismiss_session_token_cleanup', 'ecat_handle_notice_dismissal');
 function ecat_handle_notice_dismissal() {
     if (current_user_can('administrator')) {
