@@ -57,3 +57,4 @@ require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/session-token-cleanu
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/image-votes-cleanup.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/team-member-management.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/artist-user-relationships.php';
+require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/scaled-image-url-fix.php';
