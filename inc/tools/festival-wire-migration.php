@@ -103,7 +103,7 @@ function festival_wire_migration_admin_page() {
 }
 
 /**
- * Uses direct SQL for performance with large datasets and complex taxonomy operations
+ * Migrates festival_wire tags to festival taxonomy using SQL for performance with large datasets
  */
 function festival_wire_perform_tag_to_festival_migration() {
     global $wpdb;

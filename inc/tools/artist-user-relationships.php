@@ -1,18 +1,12 @@
 <?php
 /**
- * Artist-User Relationship Management Tool
- *
- * Comprehensive interface for managing relationships between users and artist profiles.
- * Only loads if extrachill-artist-platform plugin is active.
- *
- * @package ExtraChillAdminTools
+ * Manages relationships between users and artist profiles (requires extrachill-artist-platform)
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Only load if artist platform plugin is active
 if (is_plugin_active('extrachill-artist-platform/extrachill-artist-platform.php')) {
     add_filter('extrachill_admin_tools', function($tools) {
         $tools[] = array(
@@ -25,9 +19,6 @@ if (is_plugin_active('extrachill-artist-platform/extrachill-artist-platform.php'
     }, 20);
 }
 
-/**
- * Artist-User Relationship Management Page
- */
 function ec_artist_user_relationships_page() {
     if (!current_user_can('manage_options')) {
         wp_die('Unauthorized access');
@@ -126,7 +117,6 @@ function ec_artist_user_relationships_page() {
             </a>
         </div>
 
-        <!-- Search Box -->
         <div class="ec-search-box">
             <form method="get">
                 <input type="hidden" name="page" value="extrachill-admin-tools">
@@ -227,9 +217,6 @@ function ec_artist_user_relationships_page() {
     <?php
 }
 
-/**
- * Render Artists View
- */
 function ec_render_artists_view($search) {
     $args = array(
         'post_type' => 'artist_profile',
@@ -296,9 +283,6 @@ function ec_render_artists_view($search) {
     <?php endif;
 }
 
-/**
- * Render Users View
- */
 function ec_render_users_view($search) {
     $args = array(
         'number' => 50,
@@ -373,14 +357,10 @@ function ec_render_users_view($search) {
     <?php endif;
 }
 
-/**
- * Render Orphans View
- */
 function ec_render_orphans_view() {
     echo '<h3>Orphaned Relationships</h3>';
     echo '<p>Users with artist profile IDs that no longer exist, or artist profiles with invalid user IDs.</p>';
 
-    // Find users with broken artist relationships
     $all_users = get_users(array('meta_key' => '_artist_profile_ids'));
     $orphaned_users = array();
 
@@ -430,9 +410,6 @@ function ec_render_orphans_view() {
     <?php endif;
 }
 
-/**
- * AJAX Handler: Remove Relationship
- */
 add_action('wp_ajax_ec_remove_artist_user_relationship', 'ec_ajax_remove_artist_user_relationship');
 function ec_ajax_remove_artist_user_relationship() {
     if (!current_user_can('manage_options')) {
@@ -462,9 +439,6 @@ function ec_ajax_remove_artist_user_relationship() {
     }
 }
 
-/**
- * AJAX Handler: Add Relationship
- */
 add_action('wp_ajax_ec_add_artist_user_relationship', 'ec_ajax_add_artist_user_relationship');
 function ec_ajax_add_artist_user_relationship() {
     if (!current_user_can('manage_options')) {

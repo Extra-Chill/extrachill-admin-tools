@@ -38,7 +38,6 @@ function extrachill_admin_tools_page() {
         }
         echo '</h2>';
 
-        // Tab Panels
         foreach ($tools as $tool) {
             if (isset($tool['title']) && isset($tool['id']) && isset($tool['callback']) && function_exists($tool['callback'])) {
                 $tab_id = esc_attr($tool['id']);
@@ -54,7 +53,6 @@ function extrachill_admin_tools_page() {
             }
         }
 
-        // Tab Switching JavaScript
         ?>
         <script>
         (function() {
@@ -88,7 +86,6 @@ function extrachill_admin_tools_page() {
                 });
             });
 
-            // Activate tab from URL hash or default to first
             var hash = window.location.hash.substring(1);
             if (hash && document.querySelector('.tool-tab-content[data-tab="' + hash + '"]')) {
                 activateTab(hash);

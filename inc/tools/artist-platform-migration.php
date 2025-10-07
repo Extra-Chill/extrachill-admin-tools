@@ -1,17 +1,12 @@
 <?php
 /**
- * Artist Platform Migration Tool
- *
- * Simple two-button migration:
- * 1. Migrate: Direct site-to-site copy from community to artist
- * 2. Cleanup: Delete all data from community site after successful migration
+ * Two-step artist platform migration from community.extrachill.com to artist.extrachill.com
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Register tool with admin tools system (only on artist.extrachill.com)
 add_filter('extrachill_admin_tools', function($tools) {
     $artist_blog_id = get_blog_id_from_url('artist.extrachill.com', '/');
     $current_blog_id = get_current_blog_id();
@@ -28,13 +23,9 @@ add_filter('extrachill_admin_tools', function($tools) {
     return $tools;
 }, 10);
 
-// Register AJAX handlers
 add_action('wp_ajax_ap_migration_migrate', 'ap_migration_ajax_migrate');
 add_action('wp_ajax_ap_migration_cleanup', 'ap_migration_ajax_cleanup');
 
-/**
- * Main admin page
- */
 function artist_platform_migration_admin_page() {
     if (!current_user_can('manage_options')) {
         wp_die('Insufficient permissions');
@@ -215,9 +206,6 @@ function artist_platform_migration_admin_page() {
     <?php
 }
 
-/**
- * AJAX handler: Direct site-to-site migration
- */
 function ap_migration_ajax_migrate() {
     check_ajax_referer('ap_migration_nonce', 'nonce');
 
@@ -241,12 +229,11 @@ function ap_migration_ajax_migrate() {
     // Switch to community site to read data
     switch_to_blog($community_blog_id);
 
-    // Get artist profiles
-    $profiles = get_posts(array(
-        'post_type' => 'artist_profile',
-        'posts_per_page' => -1,
-        'post_status' => 'any'
-    ));
+    // Get artist profiles (direct query bypasses post type registration)
+    $profiles = $wpdb->get_results("
+        SELECT * FROM {$wpdb->posts}
+        WHERE post_type = 'artist_profile'
+    ");
 
     $profiles_data = array();
     foreach ($profiles as $profile) {
@@ -266,12 +253,11 @@ function ap_migration_ajax_migrate() {
         );
     }
 
-    // Get link pages
-    $link_pages = get_posts(array(
-        'post_type' => 'artist_link_page',
-        'posts_per_page' => -1,
-        'post_status' => 'any'
-    ));
+    // Get link pages (direct query bypasses post type registration)
+    $link_pages = $wpdb->get_results("
+        SELECT * FROM {$wpdb->posts}
+        WHERE post_type = 'artist_link_page'
+    ");
 
     $pages_data = array();
     foreach ($link_pages as $page) {
@@ -322,13 +308,12 @@ function ap_migration_ajax_migrate() {
                 'meta' => get_post_meta($forum->ID)
             );
 
-            // Get topics
-            $topics = get_posts(array(
-                'post_type' => bbp_get_topic_post_type(),
-                'post_parent' => $forum->ID,
-                'posts_per_page' => -1,
-                'post_status' => 'any'
-            ));
+            // Get topics (direct query bypasses post type registration)
+            $topics = $wpdb->get_results($wpdb->prepare("
+                SELECT * FROM {$wpdb->posts}
+                WHERE post_type = %s
+                AND post_parent = %d
+            ", bbp_get_topic_post_type(), $forum->ID));
 
             foreach ($topics as $topic) {
                 $topics_data[] = array(
@@ -344,13 +329,12 @@ function ap_migration_ajax_migrate() {
                     'meta' => get_post_meta($topic->ID)
                 );
 
-                // Get replies
-                $replies = get_posts(array(
-                    'post_type' => bbp_get_reply_post_type(),
-                    'post_parent' => $topic->ID,
-                    'posts_per_page' => -1,
-                    'post_status' => 'any'
-                ));
+                // Get replies (direct query bypasses post type registration)
+                $replies = $wpdb->get_results($wpdb->prepare("
+                    SELECT * FROM {$wpdb->posts}
+                    WHERE post_type = %s
+                    AND post_parent = %d
+                ", bbp_get_reply_post_type(), $topic->ID));
 
                 foreach ($replies as $reply) {
                     $replies_data[] = array(
@@ -715,9 +699,6 @@ function ap_migration_ajax_migrate() {
     ));
 }
 
-/**
- * AJAX handler: Cleanup source site
- */
 function ap_migration_ajax_cleanup() {
     check_ajax_referer('ap_migration_nonce', 'nonce');
 
@@ -740,23 +721,21 @@ function ap_migration_ajax_cleanup() {
     // Switch to community site
     switch_to_blog($community_blog_id);
 
-    // Delete artist profiles
-    $profiles = get_posts(array(
-        'post_type' => 'artist_profile',
-        'posts_per_page' => -1,
-        'post_status' => 'any'
-    ));
+    // Delete artist profiles (direct query bypasses post type registration)
+    $profiles = $wpdb->get_results("
+        SELECT * FROM {$wpdb->posts}
+        WHERE post_type = 'artist_profile'
+    ");
     foreach ($profiles as $profile) {
         wp_delete_post($profile->ID, true);
         $deleted_counts['profiles']++;
     }
 
-    // Delete link pages
-    $link_pages = get_posts(array(
-        'post_type' => 'artist_link_page',
-        'posts_per_page' => -1,
-        'post_status' => 'any'
-    ));
+    // Delete link pages (direct query bypasses post type registration)
+    $link_pages = $wpdb->get_results("
+        SELECT * FROM {$wpdb->posts}
+        WHERE post_type = 'artist_link_page'
+    ");
     foreach ($link_pages as $page) {
         wp_delete_post($page->ID, true);
         $deleted_counts['link_pages']++;
@@ -774,21 +753,19 @@ function ap_migration_ajax_cleanup() {
         ));
 
         foreach ($forum_ids as $forum_id) {
-            // Delete topics and replies first
-            $topics = get_posts(array(
-                'post_type' => bbp_get_topic_post_type(),
-                'post_parent' => $forum_id,
-                'posts_per_page' => -1,
-                'post_status' => 'any'
-            ));
+            // Delete topics and replies first (direct query bypasses post type registration)
+            $topics = $wpdb->get_results($wpdb->prepare("
+                SELECT * FROM {$wpdb->posts}
+                WHERE post_type = %s
+                AND post_parent = %d
+            ", bbp_get_topic_post_type(), $forum_id));
 
             foreach ($topics as $topic) {
-                $replies = get_posts(array(
-                    'post_type' => bbp_get_reply_post_type(),
-                    'post_parent' => $topic->ID,
-                    'posts_per_page' => -1,
-                    'post_status' => 'any'
-                ));
+                $replies = $wpdb->get_results($wpdb->prepare("
+                    SELECT * FROM {$wpdb->posts}
+                    WHERE post_type = %s
+                    AND post_parent = %d
+                ", bbp_get_reply_post_type(), $topic->ID));
 
                 foreach ($replies as $reply) {
                     wp_delete_post($reply->ID, true);

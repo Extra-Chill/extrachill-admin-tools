@@ -90,7 +90,7 @@ function tag_migration_admin_page() {
 }
 
 /**
- * Creates taxonomy terms → reassigns posts → removes tag relations → cleanup orphans
+ * Migrates tags to custom taxonomies, preserving post associations and cleaning up orphaned tags
  */
 function tag_migration_perform_bulk($tag_ids, $taxonomy) {
     $report = array();

@@ -1,9 +1,6 @@
 <?php
 /**
- * Scaled Image URL Fix
- *
- * Fixes broken image URLs in post content by replacing with -scaled versions.
- * Only replaces URLs that are 404s (file doesn't exist) when -scaled version exists.
+ * Fixes broken image URLs in post content by replacing with -scaled versions when available
  */
 
 if (!defined('ABSPATH')) {
@@ -65,11 +62,6 @@ function ec_scaled_image_url_fix_page() {
     }
 }
 
-/**
- * Scan for broken image URLs that can be fixed with -scaled versions
- *
- * @return array Results with 'items' array
- */
 function ec_scan_broken_image_urls() {
     $upload_dir = wp_upload_dir();
     $items = array();
@@ -128,11 +120,6 @@ function ec_scan_broken_image_urls() {
     return array('items' => $items);
 }
 
-/**
- * Fix broken image URLs by replacing with -scaled versions
- *
- * @return array Results with counts and items
- */
 function ec_fix_broken_image_urls() {
     $scan_results = ec_scan_broken_image_urls();
     $items = $scan_results['items'];
@@ -179,13 +166,9 @@ function ec_fix_broken_image_urls() {
 }
 
 /**
- * Convert image URL to -scaled version
- *
- * @param string $url Original image URL
- * @return string URL with -scaled inserted, or original if pattern doesn't match
+ * Converts image URL pattern from filename-1024x683.jpg to filename-scaled-1024x683.jpg
  */
 function ec_convert_to_scaled_image_url($url) {
-    // Pattern: filename-1024x683.jpg should become filename-scaled-1024x683.jpg
     if (preg_match('/^(.+)-(\d+)x(\d+)(\.[a-z]{3,4})$/i', $url, $matches)) {
         return $matches[1] . '-scaled-' . $matches[2] . 'x' . $matches[3] . $matches[4];
     }

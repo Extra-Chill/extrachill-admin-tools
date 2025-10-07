@@ -22,6 +22,9 @@ define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 register_activation_hook(__FILE__, 'extrachill_admin_tools_activate');
 
+/**
+ * Creates 404 error log table with optimized indexes
+ */
 function extrachill_admin_tools_activate() {
     if (get_option('404_log_table_created') !== 'yes') {
         global $wpdb;

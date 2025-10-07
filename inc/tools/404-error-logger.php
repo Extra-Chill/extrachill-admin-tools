@@ -37,7 +37,7 @@ function error_404_logger_toggle() {
 if (get_option('extrachill_404_logger_enabled', 1)) {
 
     /**
-     * Excludes /event/ URLs to prevent logging expected 404s from calendar plugin
+     * Logs 404 errors, excluding /event/ URLs which are expected 404s from calendar plugin
      */
     function log_404_errors() {
         if (is_404()) {
@@ -80,7 +80,7 @@ if (get_option('extrachill_404_logger_enabled', 1)) {
     add_action('wp', 'schedule_404_log_email');
 
     /**
-     * Compiles today's 404 errors into email report, then purges all data
+     * Emails today's 404 errors to admin, then deletes logged records
      */
     function send_404_log_email() {
         global $wpdb;

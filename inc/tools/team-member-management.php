@@ -1,18 +1,12 @@
 <?php
 /**
- * Team Member Management Tool
- *
- * Sync team members from main site and manage manual overrides.
- * Only loads if extrachill-multisite plugin is active.
- *
- * @package ExtraChillAdminTools
+ * Syncs team members from extrachill.com and manages manual overrides (requires extrachill-multisite)
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Only load if multisite plugin is active
 if (is_plugin_active('extrachill-multisite/extrachill-multisite.php')) {
     add_filter('extrachill_admin_tools', function($tools) {
         $tools[] = array(
@@ -25,9 +19,6 @@ if (is_plugin_active('extrachill-multisite/extrachill-multisite.php')) {
     }, 25);
 }
 
-/**
- * Team Member Management Admin Page
- */
 function ec_team_member_management_page() {
     if (!current_user_can('manage_options')) {
         wp_die('Unauthorized access');
@@ -295,12 +286,8 @@ function ec_team_member_management_page() {
     <?php
 }
 
-/**
- * AJAX Handler: Sync Team Members
- */
 add_action('wp_ajax_ec_sync_team_members', 'ec_ajax_sync_team_members');
 function ec_ajax_sync_team_members() {
-    // Security checks
     if (!current_user_can('manage_options')) {
         wp_send_json_error('Unauthorized access');
     }
@@ -309,7 +296,6 @@ function ec_ajax_sync_team_members() {
         wp_send_json_error('Invalid nonce');
     }
 
-    // Call sync function from multisite plugin
     if (!function_exists('ec_has_main_site_account')) {
         wp_send_json_error('Multisite plugin functions not available');
     }
@@ -319,11 +305,6 @@ function ec_ajax_sync_team_members() {
     wp_send_json_success($report);
 }
 
-/**
- * Sync team members from main site
- *
- * @return array Sync report with counts
- */
 function ec_sync_team_members() {
     $report = array(
         'total_users' => 0,
@@ -372,12 +353,8 @@ function ec_sync_team_members() {
     return $report;
 }
 
-/**
- * AJAX Handler: Manage Team Member
- */
 add_action('wp_ajax_ec_manage_team_member', 'ec_ajax_manage_team_member');
 function ec_ajax_manage_team_member() {
-    // Security checks
     if (!current_user_can('manage_options')) {
         wp_send_json_error('Unauthorized access');
     }
@@ -408,7 +385,6 @@ function ec_ajax_manage_team_member() {
 
         case 'reset_auto':
             delete_user_meta($user_id, 'extrachill_team_manual_override');
-            // Resync this user
             $has_main_account = function_exists('ec_has_main_site_account') ? ec_has_main_site_account($user_id) : false;
             update_user_meta($user_id, 'extrachill_team', $has_main_account ? 1 : 0);
             wp_send_json_success('User reset to auto sync');
