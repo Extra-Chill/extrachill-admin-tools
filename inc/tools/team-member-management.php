@@ -1,13 +1,13 @@
 <?php
 /**
- * Syncs team members from extrachill.com and manages manual overrides (requires extrachill-multisite)
+ * Syncs team members from extrachill.com and manages manual overrides (requires extrachill-users)
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-if (is_plugin_active('extrachill-multisite/extrachill-multisite.php')) {
+if (is_plugin_active('extrachill-users/extrachill-users.php')) {
     add_filter('extrachill_admin_tools', function($tools) {
         $tools[] = array(
             'id' => 'team-member-management',

@@ -34,7 +34,7 @@ Scans post content for broken image URLs (404s) and replaces with -scaled versio
 **Conditional**: Requires extrachill-artist-platform plugin. Comprehensive management interface with three views (Artists, Users, Orphans). AJAX-powered relationship management with add/remove capabilities. Detects and cleans orphaned relationships.
 
 ### Team Member Management (`inc/tools/team-member-management.php`)
-**Conditional**: Requires extrachill-multisite plugin. Syncs team member status from main site (extrachill.com) with manual override support. Search and pagination for user management. AJAX sync with real-time reporting.
+**Conditional**: Requires extrachill-users plugin. Syncs team member status from main site (extrachill.com) with manual override support. Search and pagination for user management. AJAX sync with real-time reporting.
 
 ### User Links Migration (`inc/tools/user-links-migration.php`)
 **Note**: File exists but NOT loaded in main plugin file (untracked). One-time migration converting legacy static social link fields (instagram, twitter, facebook, spotify, soundcloud, bandcamp, user_url) to dynamic `_user_profile_dynamic_links` array system.

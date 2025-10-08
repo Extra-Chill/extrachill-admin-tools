@@ -22,9 +22,6 @@ define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 register_activation_hook(__FILE__, 'extrachill_admin_tools_activate');
 
-/**
- * Creates 404 error log table with optimized indexes
- */
 function extrachill_admin_tools_activate() {
     if (get_option('404_log_table_created') !== 'yes') {
         global $wpdb;
@@ -55,7 +52,7 @@ function extrachill_admin_tools_activate() {
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/admin/admin-settings.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/tag-migration.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/404-error-logger.php';
-require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/festival-wire-migration.php';
+
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/session-token-cleanup.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/image-votes-cleanup.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/team-member-management.php';
