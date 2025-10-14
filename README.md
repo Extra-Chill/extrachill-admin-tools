@@ -4,13 +4,12 @@ Centralized administrative tools for the Extra Chill platform WordPress multisit
 
 ## Features
 
-**Production Status**: Active plugin with 10 tools (8 tabbed interface tools + 2 admin notice tools)
+**Production Status**: Active plugin with 9 tools (7 tabbed interface tools + 2 admin notice tools)
 
 ### Tabbed Interface Tools
 - **Tag Migration** - Bulk migrate tags to festival, artist, or venue taxonomies with search and pagination
 - **404 Error Logger** - Log 404 errors with daily email reports, automatic cleanup, and custom database table
 - **Festival Wire Migration** - One-time Festival Wire content migration (conditional: requires extrachill-news-wire plugin)
-- **Scaled Image URL Fix** - Scan and fix broken image URLs in post content by replacing with -scaled versions
 - **Artist Platform Migration** - Direct site-to-site migration from community.extrachill.com to artist.extrachill.com (site-specific: artist.extrachill.com only)
 - **Artist-User Relationships** - Manage relationships between users and artist profiles with orphan detection (conditional: requires extrachill-artist-platform)
 - **Team Member Management** - Sync team members from main site with manual override support (conditional: requires extrachill-multisite)

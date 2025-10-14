@@ -4,12 +4,12 @@ WordPress plugin providing centralized administrative tools for the Extra Chill 
 
 ## Current Implementation
 
-**Status**: Production plugin with 10 tools (8 tabbed + 2 admin notices)
+**Status**: Production plugin with 9 tools (7 tabbed + 2 admin notices)
 **Location**: Tools > Admin Tools (administrator-only access)
 **Architecture**: Filter-based tool registration with tabbed navigation and conditional loading
 
 ### Core Structure
-- `extrachill-admin-tools.php` - Main plugin file loading 9 tool files (10th file untracked)
+- `extrachill-admin-tools.php` - Main plugin file loading 8 tool files (9th file untracked)
 - `inc/admin/admin-settings.php` - Tabbed admin interface with JavaScript tab switching
 - `inc/tools/` - Individual tool implementations with filter and admin notice patterns
 
@@ -23,9 +23,6 @@ Logs 404 errors with daily email reports. Custom `404_log` table created on acti
 
 ### Festival Wire Migration (`inc/tools/festival-wire-migration.php`)
 One-time Festival Wire custom post type content migration. Conditionally loads only when `extrachill-news-wire` plugin is active.
-
-### Scaled Image URL Fix (`inc/tools/scaled-image-url-fix.php`)
-Scans post content for broken image URLs (404s) and replaces with -scaled versions when available. Two-step process: scan preview and bulk fix with reporting.
 
 ### Artist Platform Migration (`inc/tools/artist-platform-migration.php`)
 **Site-Specific**: Only loads on artist.extrachill.com. Direct site-to-site migration from community.extrachill.com to artist.extrachill.com with AJAX progress tracking. Migrates artist profiles, link pages, forums, topics, replies, analytics, subscribers, and media files. Includes cleanup option to delete source site data after verification.

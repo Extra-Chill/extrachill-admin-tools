@@ -136,6 +136,7 @@ function artist_ownership_repair_admin_page() {
                         html += '<li>Already Had Members: <strong>' + response.data.stats.already_had_members + '</strong></li>';
                         html += '<li>Repaired from post_author: <strong>' + response.data.stats.repaired_from_author + '</strong></li>';
                         html += '<li>Repaired from Slug Matching: <strong>' + response.data.stats.repaired_from_slug + '</strong></li>';
+                        html += '<li>Members Synced: <strong>' + response.data.stats.synced_members + '</strong></li>';
                         html += '<li>Link Pages Updated: <strong>' + response.data.stats.link_pages_updated + '</strong></li>';
                         html += '<li>Unmatched Profiles: <strong>' + response.data.stats.unmatched + '</strong></li>';
                         html += '<li>Errors: <strong>' + response.data.stats.errors + '</strong></li>';
@@ -264,6 +265,7 @@ function artist_ownership_repair_ajax_handler() {
         'already_had_members' => 0,
         'repaired_from_author' => 0,
         'repaired_from_slug' => 0,
+        'synced_members' => 0,
         'link_pages_updated' => 0,
         'unmatched' => 0,
         'errors' => 0
@@ -285,23 +287,35 @@ function artist_ownership_repair_ajax_handler() {
         $owner_id = 0;
         $repair_method = '';
 
-        // Priority 1: Check existing _artist_member_ids
-        $existing_members = get_post_meta($artist_id, '_artist_member_ids', true);
-        if (is_array($existing_members) && !empty($existing_members)) {
-            $owner_id = $existing_members[0]; // First member is owner
-            $stats['already_had_members']++;
-            $repair_method = 'existing_members';
+        // Step 1: Get ALL users who have this artist in their user meta (SOURCE OF TRUTH)
+        $users_with_artist = function_exists('bp_get_linked_members') ? bp_get_linked_members($artist_id) : array();
+        $correct_member_ids = array();
+
+        foreach ($users_with_artist as $user) {
+            $correct_member_ids[] = (int) $user->ID;
         }
-        // Priority 2: Check post_author
-        else if ($artist->post_author > 0) {
+
+        // Remove duplicates and ensure integers
+        $correct_member_ids = array_unique(array_map('intval', $correct_member_ids));
+        $correct_member_ids = array_values($correct_member_ids); // Re-index
+
+        // Step 2: Determine owner based on user meta, post_author, or slug
+        if (!empty($correct_member_ids)) {
+            // Priority 1: Use first member from user meta (source of truth)
+            $owner_id = $correct_member_ids[0];
+            $stats['already_had_members']++;
+            $repair_method = 'user_meta';
+        } else if ($artist->post_author > 0) {
+            // Priority 2: Use post_author if no user meta exists
             $owner_id = $artist->post_author;
+            $correct_member_ids = array($owner_id);
             $stats['repaired_from_author']++;
             $repair_method = 'post_author';
-        }
-        // Priority 3: Match by slug
-        else {
+        } else {
+            // Priority 3: Match by slug
             $owner_id = match_user_by_slug($artist->post_name);
             if ($owner_id > 0) {
+                $correct_member_ids = array($owner_id);
                 $stats['repaired_from_slug']++;
                 $repair_method = 'slug_match';
             } else {
@@ -347,14 +361,43 @@ function artist_ownership_repair_ajax_handler() {
             }
         }
 
-        // Sync bidirectional relationship (updates both user meta and post meta)
-        $membership_result = bp_add_artist_membership($owner_id, $artist_id);
+        // Step 5: Sync artist meta to match user meta (REBUILD from source of truth)
+        $current_artist_members = get_post_meta($artist_id, '_artist_member_ids', true);
+        if (!is_array($current_artist_members)) {
+            $current_artist_members = array();
+        }
 
-        if ($membership_result) {
-            error_log("Artist Ownership Repair: Successfully repaired artist {$artist_id} ({$artist->post_title}) via {$repair_method} - owner: {$owner_id}");
+        // Compare and update if different
+        sort($correct_member_ids);
+        sort($current_artist_members);
+
+        if ($correct_member_ids !== $current_artist_members) {
+            $update_result = update_post_meta($artist_id, '_artist_member_ids', $correct_member_ids);
+            if ($update_result) {
+                $stats['synced_members']++;
+                error_log("Artist Ownership Repair: Synced members for artist {$artist_id} ({$artist->post_title}) via {$repair_method} - members: [" . implode(', ', $correct_member_ids) . "]");
+            } else {
+                $stats['errors']++;
+                error_log("Artist Ownership Repair: Failed to sync members for artist {$artist_id}");
+            }
         } else {
-            $stats['errors']++;
-            error_log("Artist Ownership Repair: Failed to add membership for artist {$artist_id} and user {$owner_id}");
+            error_log("Artist Ownership Repair: Artist {$artist_id} ({$artist->post_title}) already in sync via {$repair_method} - owner: {$owner_id}");
+        }
+
+        // Step 6: Sync user meta for each member (rebuild bidirectional relationship)
+        foreach ($correct_member_ids as $member_user_id) {
+            $user_artist_ids = get_user_meta($member_user_id, '_artist_profile_ids', true);
+            if (!is_array($user_artist_ids)) {
+                $user_artist_ids = array();
+            }
+
+            // Add this artist ID if not already present
+            if (!in_array($artist_id, $user_artist_ids)) {
+                $user_artist_ids[] = $artist_id;
+                $user_artist_ids = array_unique(array_map('intval', $user_artist_ids));
+                update_user_meta($member_user_id, '_artist_profile_ids', $user_artist_ids);
+                error_log("Artist Ownership Repair: Updated user meta for user {$member_user_id} to include artist {$artist_id}");
+            }
         }
     }
 
