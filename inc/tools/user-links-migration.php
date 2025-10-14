@@ -51,7 +51,7 @@ function user_links_migration_admin_page() {
 
     echo '<form method="post" onsubmit="return confirm(\'Are you sure you want to run the user links migration?\');">';
     wp_nonce_field('user_links_migration_action');
-    echo '<p><input type="submit" name="run_user_links_migration" class="button button-primary" value="Run Migration"></p>';
+    echo '<p><input type="submit" name="run_user_links_migration" class="button" value="Run Migration"></p>';
     echo '</form>';
     echo '</div>';
 }

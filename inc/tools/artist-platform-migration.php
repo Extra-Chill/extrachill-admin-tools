@@ -8,10 +8,9 @@ if (!defined('ABSPATH')) {
 }
 
 add_filter('extrachill_admin_tools', function($tools) {
-    $artist_blog_id = get_blog_id_from_url('artist.extrachill.com', '/');
     $current_blog_id = get_current_blog_id();
 
-    if ($current_blog_id === $artist_blog_id) {
+    if ($current_blog_id === 4) { // artist.extrachill.com
         $tools[] = array(
             'id' => 'artist-platform-migration',
             'title' => 'Artist Platform Migration',
@@ -42,16 +41,44 @@ function artist_platform_migration_admin_page() {
             <p>This will copy all artist platform data from community.extrachill.com to this site (artist.extrachill.com).</p>
             <p><strong>Important:</strong> Backup your database at the server level before proceeding.</p>
 
-            <h3>Data to be copied:</h3>
-            <ul>
-                <li>Artist Profiles (<?php echo wp_count_posts('artist_profile')->publish ?? 0; ?> currently on this site)</li>
-                <li>Link Pages</li>
-                <li>Artist Forums, Topics, Replies</li>
-                <li>Analytics (views and clicks)</li>
-                <li>Subscriber data</li>
-            </ul>
+            <?php
+            // Check what data exists before migration
+            global $wpdb;
+            $temp_community_id = 2;
+            switch_to_blog($temp_community_id);
+            $temp_profiles_count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'artist_profile'");
+            $temp_link_pages_count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'artist_link_page'");
+            $temp_forums_count = 0;
+            if (function_exists('bbp_get_forum_post_type')) {
+                $temp_forums_count = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(DISTINCT p.ID) FROM {$wpdb->posts} p
+                    INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+                    WHERE p.post_type = %s AND pm.meta_key = '_is_artist_profile_forum' AND pm.meta_value = '1'",
+                    bbp_get_forum_post_type()
+                ));
+            }
+            restore_current_blog();
+            ?>
+            <div style="background: #f0f0f1; padding: 15px; margin-bottom: 20px; border-left: 4px solid #2271b1;">
+                <h3>Site Configuration</h3>
+                <ul>
+                    <li><strong>Current Site ID:</strong> <?php echo get_current_blog_id(); ?></li>
+                    <li><strong>Source Site ID (community.extrachill.com):</strong> <?php echo $temp_community_id; ?></li>
+                </ul>
+            </div>
 
-            <button type="button" class="button button-primary button-hero" id="migrate-button" style="margin-top: 20px;">
+            <h3>Data to be copied from community.extrachill.com (blog ID <?php echo $temp_community_id; ?>):</h3>
+            <ul>
+                <li>Artist Profiles: <strong><?php echo $temp_profiles_count; ?></strong></li>
+                <li>Link Pages: <strong><?php echo $temp_link_pages_count; ?></strong></li>
+                <li>Artist Forums: <strong><?php echo $temp_forums_count; ?></strong></li>
+                <li>Topics, Replies, Analytics, Subscribers (counted during migration)</li>
+            </ul>
+            <?php if ($temp_profiles_count == 0 && $temp_link_pages_count == 0): ?>
+                <p style="color: #dc3232;"><strong>Warning:</strong> No artist platform data found on community site. Is the plugin active there?</p>
+            <?php endif; ?>
+
+            <button type="button" class="button" id="migrate-button" style="margin-top: 20px;">
                 Migrate Artist Platform to This Site
             </button>
 
@@ -70,7 +97,7 @@ function artist_platform_migration_admin_page() {
             <p>After verifying the migration was successful, you can delete all artist platform data from community.extrachill.com.</p>
             <p><strong style="color: #dc3232;">Warning:</strong> This operation is IRREVERSIBLE. All artist platform data will be permanently deleted from the community site.</p>
 
-            <button type="button" class="button button-secondary" id="cleanup-button" style="margin-top: 20px;">
+            <button type="button" class="button button-2" id="cleanup-button" style="margin-top: 20px;">
                 Delete Artist Platform from Community Site
             </button>
 
@@ -119,6 +146,7 @@ function artist_platform_migration_admin_page() {
                                   '<li>Analytics Views: ' + response.data.breakdown.views + '</li>' +
                                   '<li>Analytics Clicks: ' + response.data.breakdown.clicks + '</li>' +
                                   '<li>Subscribers: ' + response.data.breakdown.subscribers + '</li>' +
+                                  '<li>Roster Relationships: ' + response.data.breakdown.roster_relationships + '</li>' +
                                   '<li>Media Files: ' + response.data.breakdown.attachments + '</li>' +
                                   '</ul>' +
                                   '<p><strong>Please reload this page to access the cleanup option.</strong></p>')
@@ -179,6 +207,7 @@ function artist_platform_migration_admin_page() {
                                   '<li>Replies: ' + response.data.deleted.replies + '</li>' +
                                   '<li>Analytics Records: ' + response.data.deleted.analytics + '</li>' +
                                   '<li>Subscribers: ' + response.data.deleted.subscribers + '</li>' +
+                                  '<li>Roster Relationships: ' + response.data.deleted.roster_relationships + '</li>' +
                                   '</ul>')
                             .css('border-left-color', '#46b450')
                             .show();
@@ -214,7 +243,7 @@ function ap_migration_ajax_migrate() {
     }
 
     global $wpdb;
-    $community_blog_id = get_blog_id_from_url('community.extrachill.com', '/');
+    $community_blog_id = 2; // community.extrachill.com
     $imported_counts = array(
         'profiles' => 0,
         'link_pages' => 0,
@@ -223,17 +252,28 @@ function ap_migration_ajax_migrate() {
         'replies' => 0,
         'views' => 0,
         'clicks' => 0,
-        'subscribers' => 0
+        'subscribers' => 0,
+        'roster_relationships' => 0
     );
 
     // Switch to community site to read data
     switch_to_blog($community_blog_id);
+
+    // Debug: Log what we're about to query
+    error_log('AP Migration: Switched to blog ' . $community_blog_id);
+    error_log('AP Migration: Current wpdb prefix: ' . $wpdb->prefix);
+    error_log('AP Migration: Posts table: ' . $wpdb->posts);
 
     // Get artist profiles (direct query bypasses post type registration)
     $profiles = $wpdb->get_results("
         SELECT * FROM {$wpdb->posts}
         WHERE post_type = 'artist_profile'
     ");
+
+    error_log('AP Migration: Found ' . count($profiles) . ' artist profiles');
+    if (empty($profiles)) {
+        error_log('AP Migration: Profile query: SELECT * FROM ' . $wpdb->posts . ' WHERE post_type = "artist_profile"');
+    }
 
     $profiles_data = array();
     foreach ($profiles as $profile) {
@@ -259,6 +299,8 @@ function ap_migration_ajax_migrate() {
         WHERE post_type = 'artist_link_page'
     ");
 
+    error_log('AP Migration: Found ' . count($link_pages) . ' link pages');
+
     $pages_data = array();
     foreach ($link_pages as $page) {
         $pages_data[] = array(
@@ -282,6 +324,8 @@ function ap_migration_ajax_migrate() {
     $forums_data = array();
     $topics_data = array();
     $replies_data = array();
+
+    error_log('AP Migration: bbPress active: ' . (function_exists('bbp_get_forum_post_type') ? 'yes' : 'no'));
 
     if (function_exists('bbp_get_forum_post_type')) {
         $forum_ids = $wpdb->get_col($wpdb->prepare(
@@ -372,154 +416,347 @@ function ap_migration_ajax_migrate() {
         $subscribers_data = $wpdb->get_results("SELECT * FROM {$subscribers_table}", ARRAY_A);
     }
 
+    // Get roster relationships (user meta linking users to artist profiles)
+    $roster_relationships = array();
+    $all_users = get_users(array('fields' => 'ID'));
+    foreach ($all_users as $user_id) {
+        $artist_profile_ids = get_user_meta($user_id, '_artist_profile_ids', true);
+        if (!empty($artist_profile_ids) && is_array($artist_profile_ids)) {
+            // Filter to only include artist profiles being migrated
+            $migrated_ids = array_intersect($artist_profile_ids, wp_list_pluck($profiles_data, 'ID'));
+            if (!empty($migrated_ids)) {
+                $roster_relationships[$user_id] = $migrated_ids;
+            }
+        }
+    }
+
     // Switch back to artist site for import
     restore_current_blog();
 
-    // Import artist profiles
+    error_log('AP Migration: Starting import phase on blog ' . get_current_blog_id());
+    error_log('AP Migration: Will import ' . count($profiles_data) . ' profiles');
+    error_log('AP Migration: Will import ' . count($pages_data) . ' link pages');
+
+    // Import artist profiles via direct database insert (granular checking)
     foreach ($profiles_data as $profile_data) {
-        if (get_post($profile_data['ID'])) {
-            continue; // Skip if exists
+        // Check if post exists
+        $post_exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE ID = %d",
+            $profile_data['ID']
+        ));
+
+        if (!$post_exists) {
+            // Only import post if missing
+            error_log('AP Migration: Importing profile ID ' . $profile_data['ID'] . ': ' . $profile_data['post_title']);
+
+            $result = $wpdb->insert(
+                $wpdb->posts,
+                array(
+                    'ID' => $profile_data['ID'],
+                    'post_type' => 'artist_profile',
+                    'post_title' => $profile_data['post_title'],
+                    'post_content' => $profile_data['post_content'],
+                    'post_status' => $profile_data['post_status'],
+                    'post_author' => $profile_data['post_author'],
+                    'post_date' => $profile_data['post_date'],
+                    'post_date_gmt' => $profile_data['post_date_gmt'],
+                    'post_modified' => $profile_data['post_modified'],
+                    'post_modified_gmt' => $profile_data['post_modified_gmt'],
+                    'post_name' => $profile_data['post_name'],
+                    'guid' => ''
+                ),
+                array('%d', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s')
+            );
+
+            if ($result) {
+                error_log('AP Migration: Successfully imported profile ' . $profile_data['ID']);
+                $imported_counts['profiles']++;
+            } else {
+                error_log('AP Migration: Failed to import profile ' . $profile_data['ID'] . ': ' . $wpdb->last_error);
+            }
         }
 
-        $post_data = array(
-            'ID' => $profile_data['ID'],
-            'post_type' => 'artist_profile',
-            'post_title' => $profile_data['post_title'],
-            'post_content' => $profile_data['post_content'],
-            'post_status' => $profile_data['post_status'],
-            'post_author' => $profile_data['post_author'],
-            'post_date' => $profile_data['post_date'],
-            'post_date_gmt' => $profile_data['post_date_gmt'],
-            'post_modified' => $profile_data['post_modified'],
-            'post_modified_gmt' => $profile_data['post_modified_gmt'],
-            'post_name' => $profile_data['post_name']
-        );
+        // Import meta (independent of post import - check each key)
+        foreach ($profile_data['meta'] as $key => $values) {
+            $meta_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT meta_id FROM {$wpdb->postmeta}
+                 WHERE post_id = %d AND meta_key = %s",
+                $profile_data['ID'],
+                $key
+            ));
 
-        $result = wp_insert_post($post_data, true);
-        if (!is_wp_error($result)) {
-            foreach ($profile_data['meta'] as $key => $values) {
-                update_post_meta($result, $key, maybe_unserialize($values[0]));
+            if (!$meta_exists) {
+                $wpdb->insert(
+                    $wpdb->postmeta,
+                    array(
+                        'post_id' => $profile_data['ID'],
+                        'meta_key' => $key,
+                        'meta_value' => $values[0]
+                    ),
+                    array('%d', '%s', '%s')
+                );
             }
-            if ($profile_data['thumbnail_id']) {
-                set_post_thumbnail($result, $profile_data['thumbnail_id']);
+        }
+
+        // Import thumbnail (independent of post import)
+        if ($profile_data['thumbnail_id']) {
+            $thumbnail_meta_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT meta_id FROM {$wpdb->postmeta}
+                 WHERE post_id = %d AND meta_key = '_thumbnail_id'",
+                $profile_data['ID']
+            ));
+
+            if (!$thumbnail_meta_exists) {
+                $wpdb->insert(
+                    $wpdb->postmeta,
+                    array(
+                        'post_id' => $profile_data['ID'],
+                        'meta_key' => '_thumbnail_id',
+                        'meta_value' => $profile_data['thumbnail_id']
+                    ),
+                    array('%d', '%s', '%s')
+                );
             }
-            $imported_counts['profiles']++;
         }
     }
 
-    // Import link pages
+    // Import link pages via direct database insert (granular checking)
     foreach ($pages_data as $page_data) {
-        if (get_post($page_data['ID'])) {
-            continue;
+        // Check if post exists
+        $post_exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE ID = %d",
+            $page_data['ID']
+        ));
+
+        if (!$post_exists) {
+            // Only import post if missing
+            $result = $wpdb->insert(
+                $wpdb->posts,
+                array(
+                    'ID' => $page_data['ID'],
+                    'post_type' => 'artist_link_page',
+                    'post_title' => $page_data['post_title'],
+                    'post_content' => $page_data['post_content'],
+                    'post_status' => $page_data['post_status'],
+                    'post_author' => $page_data['post_author'],
+                    'post_parent' => $page_data['post_parent'],
+                    'post_date' => $page_data['post_date'],
+                    'post_date_gmt' => $page_data['post_date_gmt'],
+                    'post_modified' => $page_data['post_modified'],
+                    'post_modified_gmt' => $page_data['post_modified_gmt'],
+                    'post_name' => $page_data['post_name'],
+                    'guid' => ''
+                ),
+                array('%d', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s')
+            );
+
+            if ($result) {
+                $imported_counts['link_pages']++;
+            }
         }
 
-        $post_data = array(
-            'ID' => $page_data['ID'],
-            'post_type' => 'artist_link_page',
-            'post_title' => $page_data['post_title'],
-            'post_content' => $page_data['post_content'],
-            'post_status' => $page_data['post_status'],
-            'post_author' => $page_data['post_author'],
-            'post_parent' => $page_data['post_parent'],
-            'post_date' => $page_data['post_date'],
-            'post_date_gmt' => $page_data['post_date_gmt'],
-            'post_modified' => $page_data['post_modified'],
-            'post_modified_gmt' => $page_data['post_modified_gmt'],
-            'post_name' => $page_data['post_name']
-        );
+        // Import meta (independent of post import - check each key)
+        foreach ($page_data['meta'] as $key => $values) {
+            $meta_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT meta_id FROM {$wpdb->postmeta}
+                 WHERE post_id = %d AND meta_key = %s",
+                $page_data['ID'],
+                $key
+            ));
 
-        $result = wp_insert_post($post_data, true);
-        if (!is_wp_error($result)) {
-            foreach ($page_data['meta'] as $key => $values) {
-                update_post_meta($result, $key, maybe_unserialize($values[0]));
+            if (!$meta_exists) {
+                $wpdb->insert(
+                    $wpdb->postmeta,
+                    array(
+                        'post_id' => $page_data['ID'],
+                        'meta_key' => $key,
+                        'meta_value' => $values[0]
+                    ),
+                    array('%d', '%s', '%s')
+                );
             }
-            if ($page_data['thumbnail_id']) {
-                set_post_thumbnail($result, $page_data['thumbnail_id']);
+        }
+
+        // Import thumbnail (independent of post import)
+        if ($page_data['thumbnail_id']) {
+            $thumbnail_meta_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT meta_id FROM {$wpdb->postmeta}
+                 WHERE post_id = %d AND meta_key = '_thumbnail_id'",
+                $page_data['ID']
+            ));
+
+            if (!$thumbnail_meta_exists) {
+                $wpdb->insert(
+                    $wpdb->postmeta,
+                    array(
+                        'post_id' => $page_data['ID'],
+                        'meta_key' => '_thumbnail_id',
+                        'meta_value' => $page_data['thumbnail_id']
+                    ),
+                    array('%d', '%s', '%s')
+                );
             }
-            $imported_counts['link_pages']++;
         }
     }
 
-    // Import forums
+    // Import forums via direct database insert (granular checking)
     if (function_exists('bbp_get_forum_post_type')) {
         foreach ($forums_data as $forum_data) {
-            if (get_post($forum_data['ID'])) {
-                continue;
+            $post_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE ID = %d",
+                $forum_data['ID']
+            ));
+
+            if (!$post_exists) {
+                $result = $wpdb->insert(
+                    $wpdb->posts,
+                    array(
+                        'ID' => $forum_data['ID'],
+                        'post_type' => bbp_get_forum_post_type(),
+                        'post_title' => $forum_data['post_title'],
+                        'post_content' => $forum_data['post_content'],
+                        'post_status' => $forum_data['post_status'],
+                        'post_author' => $forum_data['post_author'],
+                        'post_parent' => $forum_data['post_parent'],
+                        'post_date' => $forum_data['post_date'],
+                        'post_date_gmt' => $forum_data['post_date_gmt'],
+                        'post_name' => $forum_data['post_name'],
+                        'guid' => ''
+                    ),
+                    array('%d', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s')
+                );
+
+                if ($result) {
+                    $imported_counts['forums']++;
+                }
             }
 
-            $post_data = array(
-                'ID' => $forum_data['ID'],
-                'post_type' => bbp_get_forum_post_type(),
-                'post_title' => $forum_data['post_title'],
-                'post_content' => $forum_data['post_content'],
-                'post_status' => $forum_data['post_status'],
-                'post_author' => $forum_data['post_author'],
-                'post_parent' => $forum_data['post_parent'],
-                'post_date' => $forum_data['post_date'],
-                'post_date_gmt' => $forum_data['post_date_gmt'],
-                'post_name' => $forum_data['post_name']
-            );
+            // Import meta (independent of post import)
+            foreach ($forum_data['meta'] as $key => $values) {
+                $meta_exists = $wpdb->get_var($wpdb->prepare(
+                    "SELECT meta_id FROM {$wpdb->postmeta}
+                     WHERE post_id = %d AND meta_key = %s",
+                    $forum_data['ID'],
+                    $key
+                ));
 
-            $result = wp_insert_post($post_data, true);
-            if (!is_wp_error($result)) {
-                foreach ($forum_data['meta'] as $key => $values) {
-                    update_post_meta($result, $key, is_array($values) ? $values[0] : $values);
+                if (!$meta_exists) {
+                    $wpdb->insert(
+                        $wpdb->postmeta,
+                        array(
+                            'post_id' => $forum_data['ID'],
+                            'meta_key' => $key,
+                            'meta_value' => is_array($values) ? $values[0] : $values
+                        ),
+                        array('%d', '%s', '%s')
+                    );
                 }
-                $imported_counts['forums']++;
             }
         }
 
-        // Import topics
+        // Import topics via direct database insert (granular checking)
         foreach ($topics_data as $topic_data) {
-            if (get_post($topic_data['ID'])) {
-                continue;
+            $post_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE ID = %d",
+                $topic_data['ID']
+            ));
+
+            if (!$post_exists) {
+                $result = $wpdb->insert(
+                    $wpdb->posts,
+                    array(
+                        'ID' => $topic_data['ID'],
+                        'post_type' => bbp_get_topic_post_type(),
+                        'post_title' => $topic_data['post_title'],
+                        'post_content' => $topic_data['post_content'],
+                        'post_status' => $topic_data['post_status'],
+                        'post_author' => $topic_data['post_author'],
+                        'post_parent' => $topic_data['post_parent'],
+                        'post_date' => $topic_data['post_date'],
+                        'post_date_gmt' => $topic_data['post_date_gmt'],
+                        'post_name' => $topic_data['post_name'],
+                        'guid' => ''
+                    ),
+                    array('%d', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s')
+                );
+
+                if ($result) {
+                    $imported_counts['topics']++;
+                }
             }
 
-            $post_data = array(
-                'ID' => $topic_data['ID'],
-                'post_type' => bbp_get_topic_post_type(),
-                'post_title' => $topic_data['post_title'],
-                'post_content' => $topic_data['post_content'],
-                'post_status' => $topic_data['post_status'],
-                'post_author' => $topic_data['post_author'],
-                'post_parent' => $topic_data['post_parent'],
-                'post_date' => $topic_data['post_date'],
-                'post_date_gmt' => $topic_data['post_date_gmt'],
-                'post_name' => $topic_data['post_name']
-            );
+            // Import meta (independent of post import)
+            foreach ($topic_data['meta'] as $key => $values) {
+                $meta_exists = $wpdb->get_var($wpdb->prepare(
+                    "SELECT meta_id FROM {$wpdb->postmeta}
+                     WHERE post_id = %d AND meta_key = %s",
+                    $topic_data['ID'],
+                    $key
+                ));
 
-            $result = wp_insert_post($post_data, true);
-            if (!is_wp_error($result)) {
-                foreach ($topic_data['meta'] as $key => $values) {
-                    update_post_meta($result, $key, is_array($values) ? $values[0] : $values);
+                if (!$meta_exists) {
+                    $wpdb->insert(
+                        $wpdb->postmeta,
+                        array(
+                            'post_id' => $topic_data['ID'],
+                            'meta_key' => $key,
+                            'meta_value' => is_array($values) ? $values[0] : $values
+                        ),
+                        array('%d', '%s', '%s')
+                    );
                 }
-                $imported_counts['topics']++;
             }
         }
 
-        // Import replies
+        // Import replies via direct database insert (granular checking)
         foreach ($replies_data as $reply_data) {
-            if (get_post($reply_data['ID'])) {
-                continue;
+            $post_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE ID = %d",
+                $reply_data['ID']
+            ));
+
+            if (!$post_exists) {
+                $result = $wpdb->insert(
+                    $wpdb->posts,
+                    array(
+                        'ID' => $reply_data['ID'],
+                        'post_type' => bbp_get_reply_post_type(),
+                        'post_content' => $reply_data['post_content'],
+                        'post_status' => $reply_data['post_status'],
+                        'post_author' => $reply_data['post_author'],
+                        'post_parent' => $reply_data['post_parent'],
+                        'post_date' => $reply_data['post_date'],
+                        'post_date_gmt' => $reply_data['post_date_gmt'],
+                        'guid' => ''
+                    ),
+                    array('%d', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s')
+                );
+
+                if ($result) {
+                    $imported_counts['replies']++;
+                }
             }
 
-            $post_data = array(
-                'ID' => $reply_data['ID'],
-                'post_type' => bbp_get_reply_post_type(),
-                'post_content' => $reply_data['post_content'],
-                'post_status' => $reply_data['post_status'],
-                'post_author' => $reply_data['post_author'],
-                'post_parent' => $reply_data['post_parent'],
-                'post_date' => $reply_data['post_date'],
-                'post_date_gmt' => $reply_data['post_date_gmt']
-            );
+            // Import meta (independent of post import)
+            foreach ($reply_data['meta'] as $key => $values) {
+                $meta_exists = $wpdb->get_var($wpdb->prepare(
+                    "SELECT meta_id FROM {$wpdb->postmeta}
+                     WHERE post_id = %d AND meta_key = %s",
+                    $reply_data['ID'],
+                    $key
+                ));
 
-            $result = wp_insert_post($post_data, true);
-            if (!is_wp_error($result)) {
-                foreach ($reply_data['meta'] as $key => $values) {
-                    update_post_meta($result, $key, is_array($values) ? $values[0] : $values);
+                if (!$meta_exists) {
+                    $wpdb->insert(
+                        $wpdb->postmeta,
+                        array(
+                            'post_id' => $reply_data['ID'],
+                            'meta_key' => $key,
+                            'meta_value' => is_array($values) ? $values[0] : $values
+                        ),
+                        array('%d', '%s', '%s')
+                    );
                 }
-                $imported_counts['replies']++;
             }
         }
     }
@@ -553,6 +790,12 @@ function ap_migration_ajax_migrate() {
         }
     }
 
+    // Import roster relationships (user meta is network-wide, no blog switching needed)
+    foreach ($roster_relationships as $user_id => $artist_profile_ids) {
+        update_user_meta($user_id, '_artist_profile_ids', $artist_profile_ids);
+        $imported_counts['roster_relationships']++;
+    }
+
     // Migrate media files (attachments)
     $imported_counts['attachments'] = 0;
 
@@ -562,18 +805,26 @@ function ap_migration_ajax_migrate() {
         if ($profile['thumbnail_id']) {
             $attachment_ids[] = $profile['thumbnail_id'];
         }
+        // Check for header images in meta
+        if (isset($profile['meta']['_artist_profile_header_image_id'][0])) {
+            $attachment_ids[] = $profile['meta']['_artist_profile_header_image_id'][0];
+            error_log('AP Migration: Found header image ID ' . $profile['meta']['_artist_profile_header_image_id'][0] . ' for profile ' . $profile['ID']);
+        }
     }
     foreach ($pages_data as $page) {
         if ($page['thumbnail_id']) {
             $attachment_ids[] = $page['thumbnail_id'];
         }
         // Check for background images in meta
-        if (isset($page['meta']['_ec_background_image_id'][0])) {
-            $attachment_ids[] = $page['meta']['_ec_background_image_id'][0];
+        if (isset($page['meta']['_link_page_background_image_id'][0])) {
+            $attachment_ids[] = $page['meta']['_link_page_background_image_id'][0];
         }
     }
 
     $attachment_ids = array_unique(array_filter($attachment_ids));
+
+    error_log('AP Migration: Total unique attachment IDs to migrate: ' . count($attachment_ids));
+    error_log('AP Migration: Attachment IDs: ' . implode(', ', $attachment_ids));
 
     if (!empty($attachment_ids)) {
         // Switch to community site to get attachment data
@@ -582,8 +833,10 @@ function ap_migration_ajax_migrate() {
         $upload_dir_source = wp_upload_dir();
 
         foreach ($attachment_ids as $attachment_id) {
+            error_log('AP Migration: Processing attachment ID ' . $attachment_id);
             $attachment = get_post($attachment_id);
             if (!$attachment || $attachment->post_type !== 'attachment') {
+                error_log('AP Migration: Attachment ID ' . $attachment_id . ' not found or not an attachment type');
                 continue;
             }
 
@@ -609,10 +862,12 @@ function ap_migration_ajax_migrate() {
 
             // Check if attachment already exists
             if (get_post($attachment_data['ID'])) {
+                error_log('AP Migration: Attachment ID ' . $attachment_data['ID'] . ' already exists, skipping');
                 switch_to_blog($community_blog_id);
                 continue;
             }
 
+            error_log('AP Migration: Attachment ID ' . $attachment_data['ID'] . ' does not exist, will attempt copy');
             $upload_dir_dest = wp_upload_dir();
 
             // Copy physical file
@@ -629,37 +884,64 @@ function ap_migration_ajax_migrate() {
 
                 // Copy file
                 if (copy($attachment_data['file_path'], $dest_file_path)) {
-                    // Insert attachment post
-                    $attachment_post = array(
-                        'ID' => $attachment_data['ID'],
-                        'post_type' => 'attachment',
-                        'post_title' => $attachment_data['post_title'],
-                        'post_content' => $attachment_data['post_content'],
-                        'post_excerpt' => $attachment_data['post_excerpt'],
-                        'post_status' => $attachment_data['post_status'],
-                        'post_author' => $attachment_data['post_author'],
-                        'post_date' => $attachment_data['post_date'],
-                        'post_date_gmt' => $attachment_data['post_date_gmt'],
-                        'post_name' => $attachment_data['post_name'],
-                        'post_mime_type' => $attachment_data['post_mime_type'],
-                        'guid' => $attachment_data['guid']
+                    error_log('AP Migration: Successfully copied file for attachment ID ' . $attachment_data['ID'] . ' from ' . $attachment_data['file_path'] . ' to ' . $dest_file_path);
+                    // Direct database insert for attachment
+                    $result = $wpdb->insert(
+                        $wpdb->posts,
+                        array(
+                            'ID' => $attachment_data['ID'],
+                            'post_type' => 'attachment',
+                            'post_title' => $attachment_data['post_title'],
+                            'post_content' => $attachment_data['post_content'],
+                            'post_excerpt' => $attachment_data['post_excerpt'],
+                            'post_status' => $attachment_data['post_status'],
+                            'post_author' => $attachment_data['post_author'],
+                            'post_date' => $attachment_data['post_date'],
+                            'post_date_gmt' => $attachment_data['post_date_gmt'],
+                            'post_name' => $attachment_data['post_name'],
+                            'post_mime_type' => $attachment_data['post_mime_type'],
+                            'guid' => $attachment_data['guid']
+                        ),
+                        array('%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s')
                     );
 
-                    $result = wp_insert_post($attachment_post, true);
-
-                    if (!is_wp_error($result)) {
-                        // Update attachment meta
+                    if ($result) {
+                        // Copy attachment meta
                         foreach ($attachment_data['meta'] as $key => $values) {
-                            update_post_meta($result, $key, maybe_unserialize($values[0]));
+                            $wpdb->insert(
+                                $wpdb->postmeta,
+                                array(
+                                    'post_id' => $attachment_data['ID'],
+                                    'meta_key' => $key,
+                                    'meta_value' => $values[0]
+                                ),
+                                array('%d', '%s', '%s')
+                            );
                         }
 
                         // Update attachment metadata
                         if ($attachment_data['metadata']) {
-                            wp_update_attachment_metadata($result, $attachment_data['metadata']);
+                            $wpdb->insert(
+                                $wpdb->postmeta,
+                                array(
+                                    'post_id' => $attachment_data['ID'],
+                                    'meta_key' => '_wp_attachment_metadata',
+                                    'meta_value' => maybe_serialize($attachment_data['metadata'])
+                                ),
+                                array('%d', '%s', '%s')
+                            );
                         }
 
                         // Update attached file path
-                        update_post_meta($result, '_wp_attached_file', str_replace($upload_dir_source['basedir'] . '/', '', $dest_file_path));
+                        $wpdb->insert(
+                            $wpdb->postmeta,
+                            array(
+                                'post_id' => $attachment_data['ID'],
+                                'meta_key' => '_wp_attached_file',
+                                'meta_value' => str_replace($upload_dir_source['basedir'] . '/', '', $dest_file_path)
+                            ),
+                            array('%d', '%s', '%s')
+                        );
 
                         $imported_counts['attachments']++;
 
@@ -688,6 +970,149 @@ function ap_migration_ajax_migrate() {
         restore_current_blog();
     }
 
+    // Import analytics views via direct database insert
+    if (!empty($views_data)) {
+        $views_table = $wpdb->prefix . 'extrch_link_page_daily_views';
+
+        foreach ($views_data as $view_row) {
+            // Check if record already exists
+            $exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT view_id FROM {$views_table}
+                 WHERE link_page_id = %d AND stat_date = %s",
+                $view_row['link_page_id'],
+                $view_row['stat_date']
+            ));
+
+            if (!$exists) {
+                $wpdb->insert(
+                    $views_table,
+                    array(
+                        'link_page_id' => $view_row['link_page_id'],
+                        'stat_date' => $view_row['stat_date'],
+                        'view_count' => $view_row['view_count']
+                    ),
+                    array('%d', '%s', '%d')
+                );
+
+                if ($wpdb->insert_id) {
+                    $imported_counts['views']++;
+                }
+            }
+        }
+    }
+
+    // Import analytics clicks via direct database insert
+    if (!empty($clicks_data)) {
+        $clicks_table = $wpdb->prefix . 'extrch_link_page_daily_link_clicks';
+
+        foreach ($clicks_data as $click_row) {
+            // Check if record already exists
+            $exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT click_id FROM {$clicks_table}
+                 WHERE link_page_id = %d AND stat_date = %s AND link_url = %s",
+                $click_row['link_page_id'],
+                $click_row['stat_date'],
+                $click_row['link_url']
+            ));
+
+            if (!$exists) {
+                $wpdb->insert(
+                    $clicks_table,
+                    array(
+                        'link_page_id' => $click_row['link_page_id'],
+                        'stat_date' => $click_row['stat_date'],
+                        'link_url' => $click_row['link_url'],
+                        'click_count' => $click_row['click_count']
+                    ),
+                    array('%d', '%s', '%s', '%d')
+                );
+
+                if ($wpdb->insert_id) {
+                    $imported_counts['clicks']++;
+                }
+            }
+        }
+    }
+
+    // Import subscribers via direct database insert
+    if (!empty($subscribers_data)) {
+        $subscribers_table = $wpdb->prefix . 'artist_subscribers';
+
+        foreach ($subscribers_data as $subscriber_row) {
+            // Check if record already exists
+            $exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT subscriber_id FROM {$subscribers_table}
+                 WHERE subscriber_email = %s AND artist_profile_id = %d",
+                $subscriber_row['subscriber_email'],
+                $subscriber_row['artist_profile_id']
+            ));
+
+            if (!$exists) {
+                $insert_data = array(
+                    'artist_profile_id' => $subscriber_row['artist_profile_id'],
+                    'subscriber_email' => $subscriber_row['subscriber_email'],
+                    'subscribed_at' => $subscriber_row['subscribed_at'],
+                    'exported' => $subscriber_row['exported']
+                );
+
+                $insert_format = array('%d', '%s', '%s', '%d');
+
+                // Optional fields (may not exist in all rows)
+                if (isset($subscriber_row['user_id'])) {
+                    $insert_data['user_id'] = $subscriber_row['user_id'];
+                    $insert_format[] = '%d';
+                }
+                if (isset($subscriber_row['username'])) {
+                    $insert_data['username'] = $subscriber_row['username'];
+                    $insert_format[] = '%s';
+                }
+                if (isset($subscriber_row['source'])) {
+                    $insert_data['source'] = $subscriber_row['source'];
+                    $insert_format[] = '%s';
+                }
+
+                $wpdb->insert($subscribers_table, $insert_data, $insert_format);
+
+                if ($wpdb->insert_id) {
+                    $imported_counts['subscribers']++;
+                }
+            }
+        }
+    }
+
+    // Import roster relationships (user meta is network-wide, no blog switching needed)
+    foreach ($roster_relationships as $user_id => $artist_profile_ids) {
+        // Get existing roster for this user
+        $existing_roster = get_user_meta($user_id, '_artist_profile_ids', true);
+        if (!is_array($existing_roster)) {
+            $existing_roster = array();
+        }
+
+        // Merge with migrated artist IDs (avoid duplicates)
+        $merged_roster = array_unique(array_merge($existing_roster, $artist_profile_ids));
+
+        // Update user meta with merged roster
+        update_user_meta($user_id, '_artist_profile_ids', $merged_roster);
+        $imported_counts['roster_relationships']++;
+
+        // Sync bidirectional relationship: update artist post meta for each artist
+        foreach ($merged_roster as $artist_id) {
+            $current_member_ids = get_post_meta($artist_id, '_artist_member_ids', true);
+            if (!is_array($current_member_ids)) {
+                $current_member_ids = array();
+            }
+
+            if (!in_array($user_id, $current_member_ids)) {
+                $current_member_ids[] = $user_id;
+                $current_member_ids = array_unique(array_map('absint', $current_member_ids));
+                update_post_meta($artist_id, '_artist_member_ids', $current_member_ids);
+            }
+        }
+    }
+
+    error_log('AP Migration: Import phase complete');
+    error_log('AP Migration: Final counts - Profiles: ' . $imported_counts['profiles'] . ', Link Pages: ' . $imported_counts['link_pages'] . ', Forums: ' . $imported_counts['forums']);
+
     // Mark migration as completed
     update_option('ap_migration_completed', true);
 
@@ -707,7 +1132,7 @@ function ap_migration_ajax_cleanup() {
     }
 
     global $wpdb;
-    $community_blog_id = get_blog_id_from_url('community.extrachill.com', '/');
+    $community_blog_id = 2; // community.extrachill.com
     $deleted_counts = array(
         'profiles' => 0,
         'link_pages' => 0,
@@ -715,7 +1140,8 @@ function ap_migration_ajax_cleanup() {
         'topics' => 0,
         'replies' => 0,
         'analytics' => 0,
-        'subscribers' => 0
+        'subscribers' => 0,
+        'roster_relationships' => 0
     );
 
     // Switch to community site
@@ -798,7 +1224,11 @@ function ap_migration_ajax_cleanup() {
         $deleted_counts['subscribers'] = $wpdb->query("DELETE FROM {$subscribers_table}");
     }
 
+    // Roster relationships are network-wide and still needed for artist.extrachill.com
+    // DO NOT delete these - they are active production data for the live artist platform
+    // After migration, artist.extrachill.com has the live profiles and users need roster access
     restore_current_blog();
+    $deleted_counts['roster_relationships'] = 0;  // No deletion performed
 
     $total = array_sum($deleted_counts);
 

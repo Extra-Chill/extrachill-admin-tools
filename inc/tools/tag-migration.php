@@ -1,6 +1,20 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+add_action('admin_enqueue_scripts', function($hook) {
+    if ($hook !== 'tools_page_extrachill-admin-tools') {
+        return;
+    }
+
+    wp_enqueue_script(
+        'ec-tag-migration',
+        EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/js/tag-migration.js',
+        array('extrachill-admin-tools'),
+        filemtime(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/js/tag-migration.js'),
+        true
+    );
+});
+
 add_filter('extrachill_admin_tools', function($tools) {
     $tools[] = array(
         'id' => 'tag-migration',
@@ -67,7 +81,7 @@ function tag_migration_admin_page() {
     }
     echo '</tbody></table>';
     echo '<p style="margin-top:1em;">';
-    echo '<input type="submit" name="tag_migration_action" class="button button-primary" value="festival" onclick="return confirm(\'Migrate selected tags to Festival?\');"> ';
+    echo '<input type="submit" name="tag_migration_action" class="button" value="festival" onclick="return confirm(\'Migrate selected tags to Festival?\');"> ';
     echo '<input type="submit" name="tag_migration_action" class="button" value="artist" onclick="return confirm(\'Migrate selected tags to Artist?\');"> ';
     echo '<input type="submit" name="tag_migration_action" class="button" value="venue" onclick="return confirm(\'Migrate selected tags to Venue?\');">';
     echo '</p>';
@@ -85,8 +99,6 @@ function tag_migration_admin_page() {
         }
         echo '</div></div>';
     }
-
-    echo '<script>document.getElementById("select-all-tags").addEventListener("change",function(e){var cbs=document.querySelectorAll("input[name=\"tag_ids[]\"]");for(var i=0;i<cbs.length;i++){cbs[i].checked=this.checked;}});</script>';
 }
 
 /**

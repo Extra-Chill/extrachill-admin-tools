@@ -4,6 +4,7 @@ if (!defined('ABSPATH')) {
 }
 
 add_action('admin_menu', 'extrachill_admin_tools_menu');
+add_action('admin_enqueue_scripts', 'extrachill_admin_tools_enqueue_assets');
 
 function extrachill_admin_tools_menu() {
     add_management_page(
@@ -13,6 +14,36 @@ function extrachill_admin_tools_menu() {
         'extrachill-admin-tools',
         'extrachill_admin_tools_page'
     );
+}
+
+function extrachill_admin_tools_enqueue_assets($hook) {
+    if ($hook !== 'tools_page_extrachill-admin-tools') {
+        return;
+    }
+
+    wp_enqueue_style(
+        'extrachill-admin-tools',
+        EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/css/admin-tools.css',
+        array(),
+        filemtime(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/css/admin-tools.css')
+    );
+
+    wp_enqueue_script(
+        'extrachill-admin-tools',
+        EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/js/admin-tabs.js',
+        array('jquery'),
+        filemtime(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/js/admin-tabs.js'),
+        true
+    );
+
+    wp_localize_script('extrachill-admin-tools', 'ecAdminTools', array(
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+        'nonces' => array(
+            'artistUserRelationships' => wp_create_nonce('ec_artist_user_relationships'),
+            'syncTeamMembers' => wp_create_nonce('ec_sync_team_members_nonce'),
+            'manageTeamMember' => wp_create_nonce('ec_manage_team_member_nonce'),
+        )
+    ));
 }
 
 function extrachill_admin_tools_page() {
@@ -52,49 +83,6 @@ function extrachill_admin_tools_page() {
                 echo '</div>';
             }
         }
-
-        ?>
-        <script>
-        (function() {
-            var tabs = document.querySelectorAll('.nav-tab[data-tab]');
-            var panels = document.querySelectorAll('.tool-tab-content[data-tab]');
-
-            function activateTab(tabId) {
-                tabs.forEach(function(tab) {
-                    if (tab.getAttribute('data-tab') === tabId) {
-                        tab.classList.add('nav-tab-active');
-                    } else {
-                        tab.classList.remove('nav-tab-active');
-                    }
-                });
-
-                panels.forEach(function(panel) {
-                    if (panel.getAttribute('data-tab') === tabId) {
-                        panel.style.display = 'block';
-                    } else {
-                        panel.style.display = 'none';
-                    }
-                });
-            }
-
-            tabs.forEach(function(tab) {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var tabId = this.getAttribute('data-tab');
-                    activateTab(tabId);
-                    window.location.hash = tabId;
-                });
-            });
-
-            var hash = window.location.hash.substring(1);
-            if (hash && document.querySelector('.tool-tab-content[data-tab="' + hash + '"]')) {
-                activateTab(hash);
-            } else if (tabs.length > 0) {
-                activateTab(tabs[0].getAttribute('data-tab'));
-            }
-        })();
-        </script>
-        <?php
     }
 
     echo '</div>';

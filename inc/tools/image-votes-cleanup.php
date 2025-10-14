@@ -24,7 +24,7 @@ function ecat_image_votes_cleanup_notice() {
     <div class="notice notice-info is-dismissible" data-dismiss-action="ecat_dismiss_image_votes_cleanup">
         <p><strong>Image Voting System Modernized:</strong> The image voting blocks have been updated to use WordPress native block attributes instead of a custom database table. The old <code>image_votes</code> database table can now be safely removed.</p>
         <p>
-            <a href="#" class="button button-secondary" onclick="ecat_cleanup_image_votes()">Remove Old Table</a>
+            <a href="#" class="button button-2" onclick="ecat_cleanup_image_votes()">Remove Old Table</a>
             <em>This will permanently delete the unused image votes database table.</em>
         </p>
     </div>

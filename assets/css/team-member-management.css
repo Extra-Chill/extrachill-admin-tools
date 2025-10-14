@@ -1,0 +1,66 @@
+/**
+ * Team Member Management Tool Styles
+ * Tool-specific styles for team member sync and management
+ */
+
+/* Sync Section */
+.ec-sync-section {
+    background: #f0f0f1;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.ec-sync-button {
+    font-size: 16px;
+    height: auto;
+    padding: 12px 24px;
+}
+
+.ec-sync-report {
+    margin-top: 15px;
+    padding: 12px;
+    background: white;
+    border-left: 4px solid #00a32a;
+}
+
+/* User Table */
+.ec-user-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+.ec-user-table th,
+.ec-user-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.ec-user-table th {
+    background: #f0f0f1;
+    font-weight: 600;
+}
+
+/* Badge Styles */
+.ec-badge-yes {
+    background: #00a32a;
+    color: white;
+}
+
+.ec-badge-no {
+    background: #dba617;
+    color: white;
+}
+
+/* Source Text */
+.ec-source {
+    font-size: 12px;
+    color: #646970;
+}
+
+/* Search Form */
+.ec-search-form {
+    margin-bottom: 20px;
+}

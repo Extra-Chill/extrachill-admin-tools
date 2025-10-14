@@ -1,0 +1,218 @@
+/**
+ * Generic styles for Extra Chill Admin Tools
+ * Reusable components for all admin tools
+ */
+
+/* Nested Tab Navigation */
+.ec-nested-tabs {
+    margin: 20px 0;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    gap: 5px;
+}
+
+.ec-nested-tabs a {
+    display: inline-block;
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    background: #e0e0e0;
+    color: #333;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.ec-nested-tabs a:hover {
+    background: #d0d0d0;
+}
+
+.ec-nested-tabs a.active {
+    background: white;
+    font-weight: 600;
+    color: #000;
+}
+
+/* Generic Table Styles */
+.ec-tool-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.ec-tool-table th,
+.ec-tool-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.ec-tool-table th {
+    background: #f0f0f1;
+    font-weight: 600;
+}
+
+.ec-tool-table tr:hover {
+    background: #f9f9f9;
+}
+
+/* Generic Badge Styles */
+.ec-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ec-badge-primary {
+    background: #2271b1;
+    color: white;
+}
+
+.ec-badge-success {
+    background: #00a32a;
+    color: white;
+}
+
+.ec-badge-warning {
+    background: #dba617;
+    color: white;
+}
+
+.ec-badge-danger {
+    background: #b32d2e;
+    color: white;
+}
+
+.ec-badge-info {
+    background: #72aee6;
+    color: white;
+}
+
+/* Generic Search Box */
+.ec-search-box {
+    margin: 20px 0;
+}
+
+.ec-search-box input[type="text"] {
+    width: 300px;
+    padding: 6px 10px;
+}
+
+.ec-search-box .button {
+    margin-left: 5px;
+}
+
+/* Generic Pagination */
+.ec-pagination {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Generic Empty State */
+.ec-empty-state {
+    padding: 40px;
+    text-align: center;
+    color: #646970;
+    font-size: 14px;
+}
+
+/* Generic Section Containers */
+.ec-section {
+    background: #f0f0f1;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.ec-section h3 {
+    margin-top: 0;
+}
+
+/* Generic Modal Base Styles */
+.ec-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100000;
+}
+
+.ec-modal-content {
+    position: relative;
+    background: white;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.ec-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    background: none;
+    border: none;
+    line-height: 1;
+}
+
+.ec-modal-close:hover {
+    color: #000;
+}
+
+/* Generic List Styles */
+.ec-list {
+    list-style: none;
+    margin: 10px 0;
+    padding: 0;
+}
+
+.ec-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.ec-list li:last-child {
+    border-bottom: none;
+}
+
+/* Generic Link Styles */
+.ec-link-danger {
+    color: #b32d2e;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.ec-link-danger:hover {
+    text-decoration: underline;
+    color: #a00;
+}
+
+/* Generic Meta Text */
+.ec-meta {
+    font-size: 12px;
+    color: #646970;
+}
+
+/* Generic Report/Notice Box */
+.ec-report {
+    margin-top: 15px;
+    padding: 12px;
+    background: white;
+    border-left: 4px solid #00a32a;
+}
+
+.ec-report ul {
+    margin: 0;
+    padding-left: 20px;
+}

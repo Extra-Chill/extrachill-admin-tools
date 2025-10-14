@@ -7,17 +7,45 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (is_plugin_active('extrachill-users/extrachill-users.php')) {
-    add_filter('extrachill_admin_tools', function($tools) {
-        $tools[] = array(
-            'id' => 'team-member-management',
-            'title' => 'Team Member Management',
-            'description' => 'Sync team members from main site (extrachill.com) and manage manual overrides for fired staff or community moderators.',
-            'callback' => 'ec_team_member_management_page'
-        );
+add_action('admin_enqueue_scripts', function($hook) {
+    if ($hook !== 'tools_page_extrachill-admin-tools') {
+        return;
+    }
+
+    if (!function_exists('ec_is_team_member')) {
+        return;
+    }
+
+    wp_enqueue_style(
+        'ec-team-member-management',
+        EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/css/team-member-management.css',
+        array('extrachill-admin-tools'),
+        filemtime(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/css/team-member-management.css')
+    );
+
+    wp_enqueue_script(
+        'ec-team-member-management',
+        EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/js/team-member-management.js',
+        array('extrachill-admin-tools'),
+        filemtime(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/js/team-member-management.js'),
+        true
+    );
+});
+
+add_filter('extrachill_admin_tools', function($tools) {
+    // Only load if extrachill-users plugin function exists
+    if (!function_exists('ec_is_team_member')) {
         return $tools;
-    }, 25);
-}
+    }
+
+    $tools[] = array(
+        'id' => 'team-member-management',
+        'title' => 'Team Member Management',
+        'description' => 'Sync team members from main site (extrachill.com) and manage manual overrides for fired staff or community moderators.',
+        'callback' => 'ec_team_member_management_page'
+    );
+    return $tools;
+}, 25);
 
 function ec_team_member_management_page() {
     if (!current_user_can('manage_options')) {
@@ -30,75 +58,12 @@ function ec_team_member_management_page() {
     $per_page = 50;
 
     ?>
-    <style>
-        .ec-sync-section {
-            background: #f0f0f1;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .ec-sync-button {
-            font-size: 16px;
-            height: auto;
-            padding: 12px 24px;
-        }
-        .ec-sync-report {
-            margin-top: 15px;
-            padding: 12px;
-            background: white;
-            border-left: 4px solid #00a32a;
-        }
-        .ec-user-table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        .ec-user-table th,
-        .ec-user-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .ec-user-table th {
-            background: #f0f0f1;
-            font-weight: 600;
-        }
-        .ec-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .ec-badge-yes {
-            background: #00a32a;
-            color: white;
-        }
-        .ec-badge-no {
-            background: #dba617;
-            color: white;
-        }
-        .ec-source {
-            font-size: 12px;
-            color: #646970;
-        }
-        .ec-search-form {
-            margin-bottom: 20px;
-        }
-        .ec-pagination {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-    </style>
-
     <div class="ec-team-management-wrap">
         <!-- Sync Section -->
         <div class="ec-sync-section">
             <h3>Sync Team Members</h3>
             <p>Automatically set team member status for all users with extrachill.com accounts. Manual overrides will be preserved.</p>
-            <button type="button" class="button button-primary ec-sync-button" id="ec-sync-team-members">
+            <button type="button" class="button ec-sync-button" id="ec-sync-team-members">
                 Sync Team Members from Main Site
             </button>
             <div id="ec-sync-report" style="display:none;"></div>
@@ -200,89 +165,6 @@ function ec_team_member_management_page() {
         <p>No users found.</p>
         <?php endif; ?>
     </div>
-
-    <script>
-    jQuery(document).ready(function($) {
-        // Sync button handler
-        $('#ec-sync-team-members').on('click', function() {
-            var $button = $(this);
-            var $report = $('#ec-sync-report');
-
-            $button.prop('disabled', true).text('Syncing...');
-            $report.hide();
-
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'ec_sync_team_members',
-                    nonce: '<?php echo wp_create_nonce('ec_sync_team_members_nonce'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $report.html(
-                            '<strong>Sync Complete!</strong><br>' +
-                            'Total Users: ' + response.data.total_users + '<br>' +
-                            'Users Updated: ' + response.data.users_updated + '<br>' +
-                            'Users Skipped (Manual Override): ' + response.data.users_skipped_override + '<br>' +
-                            'Users with Main Site Account: ' + response.data.users_with_main_site_account
-                        ).show();
-
-                        // Reload page after 2 seconds to show updated data
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        alert('Error: ' + response.data);
-                    }
-                },
-                error: function() {
-                    alert('AJAX error occurred');
-                },
-                complete: function() {
-                    $button.prop('disabled', false).text('Sync Team Members from Main Site');
-                }
-            });
-        });
-
-        // User action handler
-        $('.ec-user-action').on('change', function() {
-            var $select = $(this);
-            var action = $select.val();
-            var userId = $select.data('user-id');
-
-            if (!action) return;
-
-            if (!confirm('Are you sure you want to perform this action?')) {
-                $select.val('');
-                return;
-            }
-
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'ec_manage_team_member',
-                    user_id: userId,
-                    team_action: action,
-                    nonce: '<?php echo wp_create_nonce('ec_manage_team_member_nonce'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + response.data);
-                        $select.val('');
-                    }
-                },
-                error: function() {
-                    alert('AJAX error occurred');
-                    $select.val('');
-                }
-            });
-        });
-    });
-    </script>
     <?php
 }
 

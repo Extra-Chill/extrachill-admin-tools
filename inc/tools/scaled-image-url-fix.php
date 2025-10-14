@@ -33,7 +33,7 @@ function ec_scaled_image_url_fix_page() {
     wp_nonce_field('scaled_image_url_fix');
     echo '<p>';
     echo '<input type="submit" name="scan_broken_images" class="button" value="Scan for Broken Images" style="margin-right:1em;"> ';
-    echo '<input type="submit" name="fix_broken_images" class="button button-primary" value="Fix Broken Images" onclick="return confirm(\'This will update post content. Continue?\');">';
+    echo '<input type="submit" name="fix_broken_images" class="button" value="Fix Broken Images" onclick="return confirm(\'This will update post content. Continue?\');">';
     echo '</p>';
     echo '</form>';
 

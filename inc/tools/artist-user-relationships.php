@@ -7,17 +7,45 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (is_plugin_active('extrachill-artist-platform/extrachill-artist-platform.php')) {
-    add_filter('extrachill_admin_tools', function($tools) {
-        $tools[] = array(
-            'id' => 'artist-user-relationships',
-            'title' => 'Artist-User Relationships',
-            'description' => 'Manage relationships between users and artist profiles. Link users to artists, view all relationships, and detect orphaned data.',
-            'callback' => 'ec_artist_user_relationships_page'
-        );
+add_action('admin_enqueue_scripts', function($hook) {
+    if ($hook !== 'tools_page_extrachill-admin-tools') {
+        return;
+    }
+
+    if (!post_type_exists('artist_profile')) {
+        return;
+    }
+
+    wp_enqueue_style(
+        'ec-artist-user-relationships',
+        EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/css/artist-user-relationships.css',
+        array('extrachill-admin-tools'),
+        filemtime(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/css/artist-user-relationships.css')
+    );
+
+    wp_enqueue_script(
+        'ec-artist-user-relationships',
+        EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/js/artist-user-relationships.js',
+        array('extrachill-admin-tools'),
+        filemtime(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/js/artist-user-relationships.js'),
+        true
+    );
+});
+
+add_filter('extrachill_admin_tools', function($tools) {
+    // Only load if artist platform plugin is active (check for post type)
+    if (!post_type_exists('artist_profile')) {
         return $tools;
-    }, 20);
-}
+    }
+
+    $tools[] = array(
+        'id' => 'artist-user-relationships',
+        'title' => 'Artist-User Relationships',
+        'description' => 'Manage relationships between users and artist profiles. Link users to artists, view all relationships, and detect orphaned data.',
+        'callback' => 'ec_artist_user_relationships_page'
+    );
+    return $tools;
+}, 20);
 
 function ec_artist_user_relationships_page() {
     if (!current_user_can('manage_options')) {
@@ -28,91 +56,16 @@ function ec_artist_user_relationships_page() {
     $search = isset($_GET['ec_search']) ? sanitize_text_field(wp_unslash($_GET['ec_search'])) : '';
 
     ?>
-    <style>
-        .ec-relationships-tabs {
-            margin: 20px 0;
-            border-bottom: 1px solid #ccc;
-        }
-        .ec-relationships-tabs a {
-            display: inline-block;
-            padding: 10px 20px;
-            text-decoration: none;
-            border: 1px solid #ccc;
-            border-bottom: none;
-            background: #f0f0f1;
-            margin-right: 5px;
-        }
-        .ec-relationships-tabs a.active {
-            background: white;
-            font-weight: 600;
-        }
-        .ec-relationship-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .ec-relationship-table th,
-        .ec-relationship-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .ec-relationship-table th {
-            background: #f0f0f1;
-            font-weight: 600;
-        }
-        .ec-relationship-table tr:hover {
-            background: #f9f9f9;
-        }
-        .ec-member-count {
-            display: inline-block;
-            background: #2271b1;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .ec-member-list {
-            list-style: none;
-            margin: 10px 0;
-            padding: 0;
-        }
-        .ec-member-list li {
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .ec-remove-link {
-            color: #b32d2e;
-            text-decoration: none;
-            margin-left: 10px;
-        }
-        .ec-remove-link:hover {
-            text-decoration: underline;
-        }
-        .ec-search-box {
-            margin: 20px 0;
-        }
-        .ec-search-box input[type="text"] {
-            width: 300px;
-        }
-        .ec-empty-state {
-            padding: 40px;
-            text-align: center;
-            color: #646970;
-        }
-    </style>
-
-    <div class="ec-relationships-wrap">
-        <!-- Tab Navigation -->
-        <div class="ec-relationships-tabs">
-            <a href="<?php echo esc_url(add_query_arg('ec_view', 'artists')); ?>" class="<?php echo $view === 'artists' ? 'active' : ''; ?>">
+    <div class="ec-relationships-wrap" data-ec-nested-container>
+        <!-- Nested Tab Navigation -->
+        <div class="ec-nested-tabs">
+            <a href="#" data-ec-nested-tab="artists" class="<?php echo $view === 'artists' ? 'active' : ''; ?>">
                 Artists
             </a>
-            <a href="<?php echo esc_url(add_query_arg('ec_view', 'users')); ?>" class="<?php echo $view === 'users' ? 'active' : ''; ?>">
+            <a href="#" data-ec-nested-tab="users" class="<?php echo $view === 'users' ? 'active' : ''; ?>">
                 Users
             </a>
-            <a href="<?php echo esc_url(add_query_arg('ec_view', 'orphans')); ?>" class="<?php echo $view === 'orphans' ? 'active' : ''; ?>">
+            <a href="#" data-ec-nested-tab="orphans" class="<?php echo $view === 'orphans' ? 'active' : ''; ?>">
                 Orphans
             </a>
         </div>
@@ -129,91 +82,32 @@ function ec_artist_user_relationships_page() {
             </form>
         </div>
 
-        <?php
-        // Render appropriate view
-        switch ($view) {
-            case 'users':
-                ec_render_users_view($search);
-                break;
-            case 'orphans':
-                ec_render_orphans_view();
-                break;
-            case 'artists':
-            default:
-                ec_render_artists_view($search);
-                break;
-        }
-        ?>
+        <!-- Artists View -->
+        <div data-ec-nested-content="artists" style="display: <?php echo $view === 'artists' ? 'block' : 'none'; ?>;">
+            <?php ec_render_artists_view($search); ?>
+        </div>
+
+        <!-- Users View -->
+        <div data-ec-nested-content="users" style="display: <?php echo $view === 'users' ? 'block' : 'none'; ?>;">
+            <?php ec_render_users_view($search); ?>
+        </div>
+
+        <!-- Orphans View -->
+        <div data-ec-nested-content="orphans" style="display: <?php echo $view === 'orphans' ? 'block' : 'none'; ?>;">
+            <?php ec_render_orphans_view(); ?>
+        </div>
     </div>
 
-    <script>
-    jQuery(document).ready(function($) {
-        // Handle remove member links
-        $('.ec-remove-member').on('click', function(e) {
-            e.preventDefault();
-
-            if (!confirm('Remove this relationship?')) {
-                return;
-            }
-
-            var $link = $(this);
-            var userId = $link.data('user-id');
-            var artistId = $link.data('artist-id');
-
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'ec_remove_artist_user_relationship',
-                    user_id: userId,
-                    artist_id: artistId,
-                    nonce: '<?php echo wp_create_nonce('ec_artist_user_relationships'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + response.data);
-                    }
-                },
-                error: function() {
-                    alert('AJAX error occurred');
-                }
-            });
-        });
-
-        // Handle add member links
-        $('.ec-link-user').on('click', function(e) {
-            e.preventDefault();
-
-            var artistId = $(this).data('artist-id');
-            var userId = prompt('Enter User ID to link:');
-
-            if (!userId) return;
-
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'ec_add_artist_user_relationship',
-                    user_id: userId,
-                    artist_id: artistId,
-                    nonce: '<?php echo wp_create_nonce('ec_artist_user_relationships'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + response.data);
-                    }
-                },
-                error: function() {
-                    alert('AJAX error occurred');
-                }
-            });
-        });
-    });
-    </script>
+    <!-- User Search Modal -->
+    <div id="ec-user-search-modal" class="ec-user-search-modal">
+        <div class="ec-user-search-content">
+            <span class="ec-user-search-close">&times;</span>
+            <h2>Add User to Artist</h2>
+            <p>Search for a user by name, username, or email:</p>
+            <input type="text" id="ec-user-search-input" class="ec-user-search-input" placeholder="Start typing to search...">
+            <div id="ec-user-search-results" class="ec-user-search-results"></div>
+        </div>
+    </div>
     <?php
 }
 
@@ -466,4 +360,45 @@ function ec_ajax_add_artist_user_relationship() {
     } else {
         wp_send_json_error('Artist platform functions not available');
     }
+}
+
+add_action('wp_ajax_ec_search_users_for_relationship', 'ec_ajax_search_users_for_relationship');
+function ec_ajax_search_users_for_relationship() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Unauthorized');
+    }
+
+    if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'ec_artist_user_relationships')) {
+        wp_send_json_error('Invalid nonce');
+    }
+
+    $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
+
+    if (strlen($search) < 2) {
+        wp_send_json_success(array());
+    }
+
+    $args = array(
+        'search' => '*' . $search . '*',
+        'search_columns' => array('user_login', 'user_email', 'display_name'),
+        'number' => 20,
+        'orderby' => 'display_name',
+        'order' => 'ASC'
+    );
+
+    $user_query = new WP_User_Query($args);
+    $users = $user_query->get_results();
+
+    $results = array();
+    foreach ($users as $user) {
+        $results[] = array(
+            'ID' => $user->ID,
+            'display_name' => $user->display_name,
+            'user_login' => $user->user_login,
+            'user_email' => $user->user_email,
+            'avatar' => get_avatar_url($user->ID, array('size' => 32))
+        );
+    }
+
+    wp_send_json_success($results);
 }

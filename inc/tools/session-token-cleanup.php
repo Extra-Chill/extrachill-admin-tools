@@ -24,7 +24,7 @@ function ecat_session_token_cleanup_notice() {
     <div class="notice notice-info is-dismissible" data-dismiss-action="ecat_dismiss_session_token_cleanup">
         <p><strong>Session Token Migration Complete:</strong> The legacy session token system has been replaced with WordPress multisite authentication. The old <code>user_session_tokens</code> database table can now be safely removed.</p>
         <p>
-            <a href="#" class="button button-secondary" onclick="ecat_cleanup_session_tokens()">Remove Old Table</a>
+            <a href="#" class="button button-2" onclick="ecat_cleanup_session_tokens()">Remove Old Table</a>
             <em>This will permanently delete the unused session token database table.</em>
         </p>
     </div>
