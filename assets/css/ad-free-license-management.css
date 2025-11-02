@@ -1,0 +1,118 @@
+/**
+ * Ad-Free License Management Styles
+ *
+ * @package ExtraChillAdminTools
+ * @since 1.0.0
+ */
+
+.ec-ad-free-wrap {
+    max-width: 1200px;
+}
+
+/* Grant Section */
+.ec-grant-section {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 4px;
+}
+
+.ec-grant-section h3 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+.ec-grant-section p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.ec-grant-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.ec-grant-form input[type="text"] {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+#ec-grant-result {
+    padding: 10px 15px;
+    margin-top: 10px;
+    border-radius: 4px;
+    display: none;
+}
+
+#ec-grant-result.success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    display: block;
+}
+
+#ec-grant-result.error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    display: block;
+}
+
+/* License Holders Section */
+.ec-license-holders-section {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.ec-license-holders-section h3 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+.ec-search-form {
+    margin-bottom: 20px;
+}
+
+.ec-search-form input[type="text"] {
+    width: 300px;
+    padding: 8px 12px;
+}
+
+.ec-search-form .button {
+    margin-left: 5px;
+}
+
+/* Table Styling */
+table.wp-list-table {
+    margin-top: 15px;
+}
+
+.ec-revoke-btn {
+    color: #d63638;
+    border-color: #d63638;
+}
+
+.ec-revoke-btn:hover {
+    color: #fff;
+    background: #d63638;
+    border-color: #a00;
+}
+
+.ec-revoke-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Pagination */
+.tablenav {
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+.tablenav-pages {
+    float: right;
+}

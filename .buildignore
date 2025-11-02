@@ -1,5 +1,4 @@
 # Development Files
-vendor/
 node_modules/
 .git/
 .github/

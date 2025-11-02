@@ -54,6 +54,14 @@ if (get_site_option('extrachill_404_logger_enabled', 1)) {
             $ip_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
             $time = current_time('mysql');
 
+            // Truncate url and referrer to prevent database errors (max 2000 chars, safety limit 1990)
+            if (strlen($url) > 1990) {
+                $url = substr($url, 0, 1990) . '...';
+            }
+            if (strlen($referrer) > 1990) {
+                $referrer = substr($referrer, 0, 1990) . '...';
+            }
+
             $result = $wpdb->insert(
                 $table_name,
                 array(
@@ -78,38 +86,61 @@ if (get_site_option('extrachill_404_logger_enabled', 1)) {
             wp_schedule_event(time(), 'daily', 'send_404_log_email');
         }
     }
-    add_action('wp', 'schedule_404_log_email');
+    add_action('init', 'schedule_404_log_email');
 
     /**
      * Emails today's 404 errors across all network sites to admin, then deletes logged records
      * Groups duplicate URLs and orders by frequency
      */
     function send_404_log_email() {
+        if (!is_main_site()) {
+            return;
+        }
+
         global $wpdb;
         $table_name = $wpdb->base_prefix . '404_log';
 
-        // Get grouped error counts with most recent occurrence details
+        // Get grouped error counts with referrer statistics and most recent user agent/IP
         $results = $wpdb->get_results("
             SELECT
-                t1.blog_id,
-                t1.url,
-                COUNT(*) as error_count,
-                MAX(t1.time) as last_occurrence,
-                t2.referrer,
-                t2.user_agent,
-                t2.ip_address
-            FROM {$table_name} t1
-            LEFT JOIN {$table_name} t2 ON t1.blog_id = t2.blog_id
-                AND t1.url = t2.url
-                AND t1.time = (
-                    SELECT MAX(time)
-                    FROM {$table_name}
-                    WHERE blog_id = t1.blog_id
-                    AND url = t1.url
-                )
-            WHERE DATE(t1.time) = CURDATE()
-            GROUP BY t1.blog_id, t1.url
-            ORDER BY t1.blog_id, error_count DESC
+                main.blog_id,
+                main.url,
+                main.error_count,
+                main.last_occurrence,
+                main.latest_user_agent,
+                main.latest_ip_address,
+                GROUP_CONCAT(
+                    CONCAT(
+                        CASE WHEN ref_counts.referrer = '' THEN 'direct' ELSE ref_counts.referrer END,
+                        ' (', ref_counts.cnt, ')'
+                    )
+                    ORDER BY ref_counts.cnt DESC
+                    SEPARATOR ', '
+                ) as referrer_summary
+            FROM (
+                SELECT
+                    blog_id,
+                    url,
+                    COUNT(*) as error_count,
+                    MAX(time) as last_occurrence,
+                    (SELECT user_agent FROM {$table_name} WHERE blog_id = t.blog_id AND url = t.url ORDER BY time DESC LIMIT 1) as latest_user_agent,
+                    (SELECT ip_address FROM {$table_name} WHERE blog_id = t.blog_id AND url = t.url ORDER BY time DESC LIMIT 1) as latest_ip_address
+                FROM {$table_name} t
+                WHERE DATE(time) = CURDATE()
+                GROUP BY blog_id, url
+            ) main
+            LEFT JOIN (
+                SELECT
+                    blog_id,
+                    url,
+                    referrer,
+                    COUNT(*) as cnt
+                FROM {$table_name}
+                WHERE DATE(time) = CURDATE()
+                GROUP BY blog_id, url, referrer
+            ) ref_counts ON main.blog_id = ref_counts.blog_id AND main.url = ref_counts.url
+            GROUP BY main.blog_id, main.url, main.error_count, main.last_occurrence, main.latest_user_agent, main.latest_ip_address
+            ORDER BY main.blog_id, main.error_count DESC
         ");
 
         if ($results) {
@@ -137,9 +168,9 @@ if (get_site_option('extrachill_404_logger_enabled', 1)) {
                 $site_total += intval($row->error_count);
 
                 $message .= "[{$row->error_count} error" . ($row->error_count > 1 ? 's' : '') . "] {$row->url} (last: {$row->last_occurrence})\n";
-                $message .= !empty($row->referrer) ? "  Referrer: {$row->referrer}\n" : "  Referrer: N/A\n";
-                $message .= !empty($row->user_agent) ? "  User Agent: {$row->user_agent}\n" : "  User Agent: N/A\n";
-                $message .= !empty($row->ip_address) ? "  IP Address: {$row->ip_address}\n" : "  IP Address: N/A\n";
+                $message .= !empty($row->referrer_summary) ? "  Referrers: {$row->referrer_summary}\n" : "  Referrers: N/A\n";
+                $message .= !empty($row->latest_user_agent) ? "  Most Recent User Agent: {$row->latest_user_agent}\n" : "  Most Recent User Agent: N/A\n";
+                $message .= !empty($row->latest_ip_address) ? "  Most Recent IP: {$row->latest_ip_address}\n" : "  Most Recent IP: N/A\n";
                 $message .= "\n";
 
                 if ($newest_time < $row->last_occurrence) {

@@ -20,6 +20,11 @@ define('EXTRACHILL_ADMIN_TOOLS_VERSION', '1.0.0');
 define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+// Load Composer autoloader for dependencies (Endroid QR Code)
+if (file_exists(EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'vendor/autoload.php')) {
+    require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'vendor/autoload.php';
+}
+
 register_activation_hook(__FILE__, 'extrachill_admin_tools_activate');
 
 function extrachill_admin_tools_activate() {
@@ -46,8 +51,8 @@ function extrachill_admin_tools_activate() {
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             blog_id INT NOT NULL,
             time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-            url varchar(255) NOT NULL,
-            referrer varchar(255) DEFAULT '' NOT NULL,
+            url varchar(2000) NOT NULL,
+            referrer varchar(2000) DEFAULT '' NOT NULL,
             user_agent text NOT NULL,
             ip_address varchar(100) NOT NULL,
             PRIMARY KEY (id),
@@ -64,10 +69,9 @@ function extrachill_admin_tools_activate() {
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/admin/admin-settings.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/tag-migration.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/404-error-logger.php';
-
-require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/session-token-cleanup.php';
-require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/image-votes-cleanup.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/team-member-management.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/artist-user-relationships.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/artist-ownership-repair.php';
-require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/migrate-avatars.php';
+require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/artist-forum-repair.php';
+require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/qr-code-generator.php';
+require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/ad-free-license-management.php';
