@@ -37,7 +37,8 @@ function error_404_logger_toggle() {
 if (get_site_option('extrachill_404_logger_enabled', 1)) {
 
     /**
-     * Logs 404 errors, excluding /event/ URLs which are expected 404s from calendar plugin
+     * Logs 404 errors with varchar(2000) url/referrer fields and safety truncation at 1990 chars.
+     * Excludes /event/ URLs (calendar plugin integration).
      */
     function log_404_errors() {
         if (is_404()) {
@@ -54,7 +55,7 @@ if (get_site_option('extrachill_404_logger_enabled', 1)) {
             $ip_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
             $time = current_time('mysql');
 
-            // Truncate url and referrer to prevent database errors (max 2000 chars, safety limit 1990)
+            // Safety truncation: 1990 char limit (10 char buffer below varchar(2000) max) prevents edge cases with URL encoding
             if (strlen($url) > 1990) {
                 $url = substr($url, 0, 1990) . '...';
             }
@@ -100,7 +101,6 @@ if (get_site_option('extrachill_404_logger_enabled', 1)) {
         global $wpdb;
         $table_name = $wpdb->base_prefix . '404_log';
 
-        // Get grouped error counts with referrer statistics and most recent user agent/IP
         $results = $wpdb->get_results("
             SELECT
                 main.blog_id,
@@ -150,9 +150,7 @@ if (get_site_option('extrachill_404_logger_enabled', 1)) {
             $newest_time = '';
 
             foreach ($results as $row) {
-                // Add site header when switching to a new site
                 if ($current_blog_id !== $row->blog_id) {
-                    // Show previous site total
                     if ($current_blog_id !== null) {
                         $message .= "Site Total: {$site_total} errors\n\n";
                     }
@@ -178,7 +176,6 @@ if (get_site_option('extrachill_404_logger_enabled', 1)) {
                 }
             }
 
-            // Show final site total
             if ($site_total > 0) {
                 $message .= "Site Total: {$site_total} errors\n\n";
             }

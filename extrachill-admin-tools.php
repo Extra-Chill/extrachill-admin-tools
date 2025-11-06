@@ -31,11 +31,9 @@ function extrachill_admin_tools_activate() {
     global $wpdb;
     $table_name = $wpdb->base_prefix . '404_log';
 
-    // Check if table exists
     $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name;
 
     if ($table_exists) {
-        // Table exists - check if blog_id column exists
         $column_exists = $wpdb->get_var("SHOW COLUMNS FROM $table_name LIKE 'blog_id'");
 
         if (!$column_exists) {
@@ -44,9 +42,9 @@ function extrachill_admin_tools_activate() {
             $wpdb->query("ALTER TABLE $table_name ADD INDEX blog_id_idx (blog_id)");
         }
     } else {
-        // Table doesn't exist - create with full schema
         $charset_collate = $wpdb->get_charset_collate();
 
+        // url and referrer use varchar(2000) to support long URLs with query parameters, tracking codes, etc.
         $sql = "CREATE TABLE $table_name (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             blog_id INT NOT NULL,
@@ -75,3 +73,4 @@ require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/artist-ownership-rep
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/artist-forum-repair.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/qr-code-generator.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/ad-free-license-management.php';
+require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/taxonomy-sync.php';

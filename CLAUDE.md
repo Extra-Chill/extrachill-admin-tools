@@ -4,12 +4,12 @@ WordPress plugin providing centralized administrative tools for the Extra Chill 
 
 ## Current Implementation
 
-**Status**: Production plugin with 10 tools (7 tabbed + 2 admin notices + 1 admin interface)
+**Status**: Production plugin with 9 tabbed tools
 **Location**: Tools > Admin Tools (administrator-only access)
 **Architecture**: Filter-based tool registration with tabbed navigation and conditional loading
 
 ### Core Structure
-- `extrachill-admin-tools.php` - Main plugin file loading 10 tool files
+- `extrachill-admin-tools.php` - Main plugin file loading 9 tool files
 - `inc/admin/admin-settings.php` - Tabbed admin interface with JavaScript tab switching
 - `inc/tools/` - Individual tool implementations with filter and admin notice patterns
 
@@ -19,7 +19,7 @@ WordPress plugin providing centralized administrative tools for the Extra Chill 
 Bulk migrate tags to festival, artist, or venue taxonomies with search, pagination, and reporting.
 
 ### 404 Error Logger (`inc/tools/404-error-logger.php`)
-Logs 404 errors with daily email reports. Custom `404_log` table created on activation with automatic cleanup. Excludes `/event/` URLs from logging.
+Logs 404 errors with daily email reports. Custom `404_log` table with varchar(2000) fields for url and referrer (supports long URLs with query parameters). Automatic cleanup after email sent. Excludes `/event/` URLs from logging. Safety truncation at 1990 characters prevents database errors.
 
 ### Artist-User Relationships (`inc/tools/artist-user-relationships.php`)
 **Conditional**: Requires extrachill-artist-platform plugin. Comprehensive management interface with three views (Artists, Users, Orphans). AJAX-powered relationship management with add/remove capabilities. Detects and cleans orphaned relationships.
@@ -33,16 +33,14 @@ Repairs ownership relationships between artists and users. Ensures data integrit
 ### Artist Forum Repair (`inc/tools/artist-forum-repair.php`)
 Repairs and synchronizes artist forum relationships. Maintains forum data consistency for artist profiles.
 
-### Migrate Avatars (`inc/tools/migrate-avatars.php`)
-Migrates user avatars to the custom avatar system. One-time migration tool for transitioning to the centralized avatar management.
+### QR Code Generator (`inc/tools/qr-code-generator.php`)
+Universal QR code generator for any URL (internal or external). Generates high-resolution print-ready QR codes using Endroid QR Code library. AJAX-powered with real-time preview and download functionality.
 
-## Admin Notice Tools
+### Ad-Free License Management (`inc/tools/ad-free-license-management.php`)
+Grant, revoke, and manage ad-free licenses for platform users. Search users, view current license holders, and manage licenses with AJAX interface. Integrates with extrachill-multisite ad-free license system.
 
-### Session Token Cleanup (`inc/tools/session-token-cleanup.php`)
-Admin notice displaying when legacy session token tables exist. AJAX table removal with double confirmation and dismissible notice.
-
-### Image Votes Cleanup (`inc/tools/image-votes-cleanup.php`)
-Admin notice for removing legacy `image_votes` database table after migration to WordPress native block attributes system. Dismissible with AJAX cleanup handler.
+### Taxonomy Sync (`inc/tools/taxonomy-sync.php`)
+Synchronize taxonomies from main site (extrachill.com) to other network sites. Preserves existing terms and their metadata while syncing new additions. Supports location, festival, artist, and venue taxonomies with selective site targeting.
 
 ## Architecture
 
@@ -59,12 +57,6 @@ add_filter('extrachill_admin_tools', function($tools) {
     );
     return $tools;
 }, 10);
-```
-
-**Admin Notice Tools** (no filter registration):
-```php
-add_action('admin_notices', 'tool_notice_function');
-add_action('wp_ajax_tool_action', 'tool_ajax_handler');
 ```
 
 ### Conditional Loading
@@ -116,7 +108,7 @@ wp_send_json_success(array(
 ));
 ```
 
-**Used in**: artist-platform-migration (migrate/cleanup), artist-user-relationships (add/remove), team-member-management (sync/manage), image-votes-cleanup (cleanup)
+**Used in**: artist-user-relationships (add/remove), team-member-management (sync/manage), qr-code-generator (generate), ad-free-license-management (grant/revoke), taxonomy-sync (sync)
 
 ## Development
 

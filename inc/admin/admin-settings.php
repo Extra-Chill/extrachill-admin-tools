@@ -42,6 +42,7 @@ function extrachill_admin_tools_enqueue_assets($hook) {
             'artistUserRelationships' => wp_create_nonce('ec_artist_user_relationships'),
             'syncTeamMembers' => wp_create_nonce('ec_sync_team_members_nonce'),
             'manageTeamMember' => wp_create_nonce('ec_manage_team_member_nonce'),
+            'taxonomySync' => wp_create_nonce('ec_taxonomy_sync_nonce'),
         )
     ));
 }

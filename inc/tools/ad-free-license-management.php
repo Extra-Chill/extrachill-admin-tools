@@ -3,7 +3,8 @@
  * Ad-Free License Management Tool
  *
  * Manage ad-free licenses for Extra Chill platform users.
- * Grant, revoke, and view license holders.
+ * Grant, revoke, and view license holders with AJAX interface.
+ * Integrates with extrachill-multisite ad-free license validation system.
  *
  * @package ExtraChillAdminTools
  * @since 1.0.0
@@ -13,7 +14,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Enqueue assets
 add_action('admin_enqueue_scripts', function($hook) {
     if ($hook !== 'tools_page_extrachill-admin-tools') {
         return;
@@ -40,7 +40,6 @@ add_action('admin_enqueue_scripts', function($hook) {
     ));
 });
 
-// Register tool
 add_filter('extrachill_admin_tools', function($tools) {
     $tools[] = array(
         'id' => 'ad-free-license-management',
@@ -51,7 +50,6 @@ add_filter('extrachill_admin_tools', function($tools) {
     return $tools;
 }, 30);
 
-// Render admin page
 function ec_ad_free_license_management_page() {
     if (!current_user_can('manage_options')) {
         wp_die('Unauthorized');
@@ -61,7 +59,6 @@ function ec_ad_free_license_management_page() {
     $paged = isset($_GET['ec_license_paged']) ? absint($_GET['ec_license_paged']) : 1;
     $per_page = 50;
 
-    // Get all users with ad-free licenses
     $user_args = array(
         'meta_key' => 'extrachill_ad_free_purchased',
         'number' => $per_page,
@@ -75,7 +72,6 @@ function ec_ad_free_license_management_page() {
 
     $users_with_licenses = get_users($user_args);
 
-    // Get total count for pagination
     $total_count_args = array(
         'meta_key' => 'extrachill_ad_free_purchased',
         'fields' => 'ID',
@@ -90,7 +86,6 @@ function ec_ad_free_license_management_page() {
 
     ?>
     <div class="ec-ad-free-wrap">
-        <!-- Grant License Section -->
         <div class="ec-grant-section">
             <h3>Grant Ad-Free License</h3>
             <p>Grant an ad-free license to any user by entering their username or email.</p>
@@ -104,11 +99,9 @@ function ec_ad_free_license_management_page() {
             <div id="ec-grant-result"></div>
         </div>
 
-        <!-- License Holders Section -->
         <div class="ec-license-holders-section">
             <h3>Current License Holders (<?php echo absint($total_licenses); ?> total)</h3>
 
-            <!-- Search Form -->
             <form method="get" class="ec-search-form">
                 <input type="hidden" name="page" value="extrachill-admin-tools">
                 <input type="text" name="ec_license_search" value="<?php echo esc_attr($search); ?>" placeholder="Search license holders..." style="width: 300px;">
@@ -118,7 +111,6 @@ function ec_ad_free_license_management_page() {
                 <?php endif; ?>
             </form>
 
-            <!-- License Holders Table -->
             <?php if (!empty($users_with_licenses)): ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
@@ -151,7 +143,6 @@ function ec_ad_free_license_management_page() {
                     </tbody>
                 </table>
 
-                <!-- Pagination -->
                 <?php
                 $total_pages = ceil($total_licenses / $per_page);
                 if ($total_pages > 1):
@@ -179,7 +170,6 @@ function ec_ad_free_license_management_page() {
     <?php
 }
 
-// AJAX: Grant License
 add_action('wp_ajax_ec_grant_ad_free', 'ec_grant_ad_free_ajax');
 function ec_grant_ad_free_ajax() {
     check_ajax_referer('ec_ad_free_management', 'nonce');
@@ -194,7 +184,6 @@ function ec_grant_ad_free_ajax() {
         wp_send_json_error('No user specified');
     }
 
-    // Try to find user by login or email
     $user = get_user_by('login', $user_identifier);
     if (!$user) {
         $user = get_user_by('email', $user_identifier);
@@ -204,16 +193,14 @@ function ec_grant_ad_free_ajax() {
         wp_send_json_error('User not found');
     }
 
-    // Check if already has license
     $existing = get_user_meta($user->ID, 'extrachill_ad_free_purchased', true);
     if ($existing) {
         wp_send_json_error('User already has ad-free license');
     }
 
-    // Grant license
     $license_data = array(
         'purchased' => current_time('mysql'),
-        'order_id' => null, // Manual grant
+        'order_id' => null,
         'username' => $user->user_login
     );
 
@@ -227,7 +214,6 @@ function ec_grant_ad_free_ajax() {
     ));
 }
 
-// AJAX: Revoke License
 add_action('wp_ajax_ec_revoke_ad_free', 'ec_revoke_ad_free_ajax');
 function ec_revoke_ad_free_ajax() {
     check_ajax_referer('ec_ad_free_management', 'nonce');
@@ -247,13 +233,11 @@ function ec_revoke_ad_free_ajax() {
         wp_send_json_error('User not found');
     }
 
-    // Check if has license
     $existing = get_user_meta($user_id, 'extrachill_ad_free_purchased', true);
     if (!$existing) {
         wp_send_json_error('User does not have ad-free license');
     }
 
-    // Revoke license
     delete_user_meta($user_id, 'extrachill_ad_free_purchased');
 
     wp_send_json_success(array(

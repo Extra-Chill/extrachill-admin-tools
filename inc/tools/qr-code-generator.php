@@ -3,7 +3,8 @@
  * QR Code Generator Tool
  *
  * Universal QR code generator for any URL (internal or external).
- * Generates high-resolution print-ready QR codes.
+ * Uses Endroid QR Code library (loaded via Composer) for high-resolution print-ready QR codes.
+ * AJAX-powered generation with real-time preview and download functionality.
  */
 
 if (!defined('ABSPATH')) {
@@ -77,9 +78,7 @@ function ec_qr_code_generator_page() {
             <p style="color:#666; margin-bottom:1em;">
                 Preview (scaled for display) - Download for full 1000x1000px print-ready resolution
             </p>
-            <div id="ec-qr-preview" style="margin-bottom:1em;">
-                <!-- QR code image will be inserted here -->
-            </div>
+            <div id="ec-qr-preview" style="margin-bottom:1em;"></div>
             <button type="button" class="button button-primary" id="ec-qr-download-btn">
                 Download PNG (1000x1000px)
             </button>
@@ -92,9 +91,6 @@ function ec_qr_code_generator_page() {
     <?php
 }
 
-/**
- * AJAX handler to generate QR code
- */
 function ec_generate_qr_code_ajax() {
     check_ajax_referer('ec_qr_code_generator', 'nonce');
 
