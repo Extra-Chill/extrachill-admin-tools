@@ -161,7 +161,7 @@ function ec_ad_free_license_management_page() {
                     </div>
                 <?php endif; ?>
             <?php else: ?>
-                <p style="padding: 20px; background: #f8f9fa; border: 1px solid #ccd0d4; border-radius: 4px;">
+                <p style="padding: 20px; background: #f8f9fa; border: 1px solid var(--border-color); border-radius: 4px;">
                     No ad-free licenses found<?php echo $search ? ' for search term "' . esc_html($search) . '"' : ''; ?>.
                 </p>
             <?php endif; ?>

@@ -74,7 +74,7 @@ function extrachill_admin_tools_page() {
             if (isset($tool['title']) && isset($tool['id']) && isset($tool['callback']) && function_exists($tool['callback'])) {
                 $tab_id = esc_attr($tool['id']);
                 echo '<div class="tool-tab-content" data-tab="' . $tab_id . '" style="display:none; margin-top:20px;">';
-                echo '<div style="padding: 1em; background: #fff; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04);">';
+                echo '<div style="padding: 1em; background: #fff; border: 1px solid var(--border-color); box-shadow: 0 1px 1px rgba(0,0,0,.04);">';
                 if (isset($tool['description'])) {
                     echo '<p style="margin-top:0;">' . esc_html($tool['description']) . '</p>';
                     echo '<hr style="margin: 1em 0;">';

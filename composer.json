@@ -1,6 +1,7 @@
 {
     "name": "extrachill/admin-tools",
     "description": "WordPress plugin providing centralized administrative tools for the Extra Chill platform ecosystem",
+    "version": "1.0.1",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "authors": [

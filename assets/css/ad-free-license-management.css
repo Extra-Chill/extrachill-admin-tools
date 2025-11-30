@@ -12,7 +12,7 @@
 /* Grant Section */
 .ec-grant-section {
     background: #fff;
-    border: 1px solid #ccd0d4;
+    border: 1px solid var(--border-color);
     padding: 20px;
     margin-bottom: 30px;
     border-radius: 4px;
@@ -48,14 +48,14 @@
 
 #ec-grant-result.success {
     background: #d4edda;
-    border: 1px solid #c3e6cb;
+    border: 1px solid var(--success-color);
     color: #155724;
     display: block;
 }
 
 #ec-grant-result.error {
     background: #f8d7da;
-    border: 1px solid #f5c6cb;
+    border: 1px solid var(--error-color);
     color: #721c24;
     display: block;
 }
@@ -63,7 +63,7 @@
 /* License Holders Section */
 .ec-license-holders-section {
     background: #fff;
-    border: 1px solid #ccd0d4;
+    border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: 4px;
 }
@@ -92,14 +92,14 @@ table.wp-list-table {
 }
 
 .ec-revoke-btn {
-    color: #d63638;
-    border-color: #d63638;
+    color: var(--error-color);
+    border-color: var(--error-color);
 }
 
 .ec-revoke-btn:hover {
     color: #fff;
-    background: #d63638;
-    border-color: #a00;
+    background: var(--error-color);
+    border-color: var(--error-color);
 }
 
 .ec-revoke-btn:disabled {

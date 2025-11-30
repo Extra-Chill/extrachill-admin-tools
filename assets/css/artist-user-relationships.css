@@ -14,7 +14,7 @@
 .ec-relationship-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .ec-relationship-table th {
@@ -46,7 +46,7 @@
 
 .ec-member-list li {
     padding: 5px 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* Remove Link */
@@ -105,13 +105,13 @@
 .ec-user-search-results {
     max-height: 400px;
     overflow-y: auto;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
 }
 
 .ec-user-search-item {
     padding: 12px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
     cursor: pointer;
     display: flex;
     align-items: center;
