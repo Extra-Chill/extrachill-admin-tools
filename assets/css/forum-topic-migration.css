@@ -1,0 +1,162 @@
+/**
+ * Bulk Forum Topic Migration Tool Styles
+ */
+
+.ec-topic-migration-wrap {
+    max-width: 100%;
+}
+
+.ec-migration-stats {
+    background: #f0f0f1;
+    padding: 15px 20px;
+    border-left: 4px solid #2271b1;
+    margin-bottom: 20px;
+}
+
+.ec-migration-stats h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.ec-migration-stats p {
+    margin: 5px 0;
+}
+
+.ec-migration-filters {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+}
+
+.ec-migration-filters .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ec-migration-filters label {
+    font-weight: 600;
+}
+
+.ec-migration-filters select,
+.ec-migration-filters input[type="text"] {
+    min-width: 200px;
+}
+
+.ec-migration-actions {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-left: 4px solid #ffc107;
+}
+
+.ec-migration-actions .bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ec-migration-actions label {
+    font-weight: 600;
+}
+
+.ec-topics-table-wrap {
+    margin-bottom: 15px;
+}
+
+#ec-topics-table {
+    border-collapse: collapse;
+}
+
+#ec-topics-table th,
+#ec-topics-table td {
+    padding: 10px 12px;
+}
+
+#ec-topics-table .check-column {
+    width: 30px;
+    padding: 10px;
+}
+
+#ec-topics-table th {
+    font-weight: 600;
+}
+
+#ec-topics-table tbody tr:hover {
+    background: #f6f7f7;
+}
+
+#ec-topics-table a {
+    text-decoration: none;
+}
+
+#ec-topics-table a:hover {
+    text-decoration: underline;
+}
+
+.ec-pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.ec-pagination .pagination-info {
+    color: #666;
+}
+
+.ec-migration-result {
+    margin-top: 20px;
+    padding: 15px 20px;
+    border-left: 4px solid #46b450;
+    background: #f7f7f7;
+}
+
+.ec-migration-result.has-errors {
+    border-left-color: #dc3232;
+}
+
+.ec-migration-result h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.ec-migration-result ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.ec-migration-result .success-list {
+    color: #46b450;
+}
+
+.ec-migration-result .error-list {
+    color: #dc3232;
+}
+
+/* Loading state */
+.ec-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.ec-loading::after {
+    content: "Loading...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Button states */
+#ec-move-selected:disabled {
+    cursor: not-allowed;
+}
