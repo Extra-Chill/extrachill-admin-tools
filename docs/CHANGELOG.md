@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-12-04
+
+### Changed
+- **QR Code Generator Tool**: Refactored to use extrachill-api REST endpoint instead of local Endroid QR Code library, converted JavaScript from jQuery to vanilla JavaScript
+
+### Removed
+- **Analytics URL Cleanup Tool**: Removed the analytics URL cleanup tool added in 1.0.4
+- **Endroid QR Code Dependency**: Removed endroid/qr-code Composer dependency
+
 ## [1.0.4] - 2025-12-04
 
 ### Added

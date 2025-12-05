@@ -1,26 +1,32 @@
 /**
  * QR Code Generator Tool JavaScript
+ *
+ * Calls the extrachill-api REST endpoint for QR code generation.
  */
 
-(function($) {
+(function() {
     'use strict';
 
     let currentQrDataUri = null;
 
-    $(document).ready(function() {
-        const $form = $('#ec-qr-generator-form');
-        const $generateBtn = $('#ec-qr-generate-btn');
-        const $spinner = $form.find('.spinner');
-        const $result = $('#ec-qr-result');
-        const $preview = $('#ec-qr-preview');
-        const $downloadBtn = $('#ec-qr-download-btn');
-        const $error = $('#ec-qr-error');
-        const $urlInput = $('#ec-qr-url');
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('ec-qr-generator-form');
+        const generateBtn = document.getElementById('ec-qr-generate-btn');
+        const spinner = form ? form.querySelector('.spinner') : null;
+        const result = document.getElementById('ec-qr-result');
+        const preview = document.getElementById('ec-qr-preview');
+        const downloadBtn = document.getElementById('ec-qr-download-btn');
+        const error = document.getElementById('ec-qr-error');
+        const urlInput = document.getElementById('ec-qr-url');
 
-        $form.on('submit', function(e) {
+        if (!form || !urlInput) {
+            return;
+        }
+
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const url = $urlInput.val().trim();
+            const url = urlInput.value.trim();
 
             if (!url) {
                 showError('Please enter a URL.');
@@ -30,73 +36,99 @@
             hideError();
             hideResult();
 
-            $generateBtn.prop('disabled', true);
-            $spinner.addClass('is-active');
+            generateBtn.disabled = true;
+            if (spinner) {
+                spinner.classList.add('is-active');
+            }
 
-            $.ajax({
-                url: ecQrCodeGen.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'ec_generate_qr_code',
-                    nonce: ecQrCodeGen.nonce,
-                    url: url
+            fetch(ecQrCodeGen.restUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': ecQrCodeGen.nonce
                 },
-                success: function(response) {
-                    if (response.success && response.data.imageUrl) {
-                        currentQrDataUri = response.data.imageUrl;
-                        displayQrCode(response.data.imageUrl, response.data.url);
-                    } else {
-                        showError(response.data.message || 'Failed to generate QR code.');
-                    }
-                },
-                error: function(xhr) {
-                    const message = xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message
-                        ? xhr.responseJSON.data.message
-                        : 'An error occurred while generating the QR code.';
+                body: JSON.stringify({ url: url })
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    return { ok: response.ok, data: data };
+                });
+            })
+            .then(function(result) {
+                if (result.ok && result.data.success && result.data.image_url) {
+                    currentQrDataUri = result.data.image_url;
+                    displayQrCode(result.data.image_url, result.data.url);
+                } else {
+                    const message = result.data.message || 'Failed to generate QR code.';
                     showError(message);
-                },
-                complete: function() {
-                    $generateBtn.prop('disabled', false);
-                    $spinner.removeClass('is-active');
+                }
+            })
+            .catch(function() {
+                showError('An error occurred while generating the QR code.');
+            })
+            .finally(function() {
+                generateBtn.disabled = false;
+                if (spinner) {
+                    spinner.classList.remove('is-active');
                 }
             });
         });
 
-        $downloadBtn.on('click', function() {
-            if (!currentQrDataUri) {
-                return;
-            }
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function() {
+                if (!currentQrDataUri) {
+                    return;
+                }
 
-            const url = $urlInput.val().trim();
-            const filename = generateFilename(url);
+                const url = urlInput.value.trim();
+                const filename = generateFilename(url);
 
-            const link = document.createElement('a');
-            link.href = currentQrDataUri;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
+                const link = document.createElement('a');
+                link.href = currentQrDataUri;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
 
         function displayQrCode(dataUri, url) {
-            $preview.html('<img src="' + dataUri + '" alt="QR Code for ' + escapeHtml(url) + '" />');
-            $result.show();
+            if (preview) {
+                preview.innerHTML = '<img src="' + dataUri + '" alt="QR Code for ' + escapeHtml(url) + '" />';
+            }
+            if (result) {
+                result.style.display = 'block';
+            }
         }
 
         function hideResult() {
-            $result.hide();
-            $preview.html('');
+            if (result) {
+                result.style.display = 'none';
+            }
+            if (preview) {
+                preview.innerHTML = '';
+            }
             currentQrDataUri = null;
         }
 
         function showError(message) {
-            $error.find('p').text(message);
-            $error.show();
+            if (error) {
+                const p = error.querySelector('p');
+                if (p) {
+                    p.textContent = message;
+                }
+                error.style.display = 'block';
+            }
         }
 
         function hideError() {
-            $error.hide();
-            $error.find('p').text('');
+            if (error) {
+                error.style.display = 'none';
+                const p = error.querySelector('p');
+                if (p) {
+                    p.textContent = '';
+                }
+            }
         }
 
         function generateFilename(url) {
@@ -127,4 +159,4 @@
         }
     });
 
-})(jQuery);
+})();

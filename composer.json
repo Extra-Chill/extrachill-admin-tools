@@ -1,7 +1,7 @@
 {
     "name": "extrachill/admin-tools",
     "description": "WordPress plugin providing centralized administrative tools for the Extra Chill platform ecosystem",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "authors": [
@@ -12,8 +12,7 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
-        "endroid/qr-code": "^6.0"
+        "php": ">=7.4"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.7",
