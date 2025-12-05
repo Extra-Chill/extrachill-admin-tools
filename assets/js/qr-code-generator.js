@@ -55,7 +55,7 @@
                 });
             })
             .then(function(result) {
-                if (result.ok && result.data.success && result.data.image_url) {
+                if (result.ok && result.data.image_url) {
                     currentQrDataUri = result.data.image_url;
                     displayQrCode(result.data.image_url, result.data.url);
                 } else {

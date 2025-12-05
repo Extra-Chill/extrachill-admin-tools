@@ -1,0 +1,12 @@
+/**
+ * Artist Access Requests Tool Styles
+ */
+
+.ec-artist-access-wrap .ec-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.ec-artist-access-wrap .ec-actions .button {
+	margin: 0;
+}

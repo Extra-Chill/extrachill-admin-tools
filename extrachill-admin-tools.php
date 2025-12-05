@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Extra Chill Admin Tools
  * Description: Centralized admin tools for the Extra Chill platform ecosystem
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Chris Huber
  * Author URI: https://chubes.net
  * License: GPL v2 or later
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('EXTRACHILL_ADMIN_TOOLS_VERSION', '1.0.5');
+define('EXTRACHILL_ADMIN_TOOLS_VERSION', '1.0.6');
 define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -70,3 +70,4 @@ require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/qr-code-generator.ph
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/ad-free-license-management.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/taxonomy-sync.php';
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/forum-topic-migration.php';
+require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/artist-access-requests.php';
