@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-12-08
+
+### Removed
+- **Social ID Backfill Tool**: Removed the conditional social ID backfill tool that was added in 1.1.0, including both PHP implementation and JavaScript assets
+
+### Changed
+- **Admin Interface Styling**: Migrated inline styles to CSS classes (`ec-tool-card`, `ec-tool-description`) for better maintainability and consistency
+- **Version Consistency**: Fixed version number inconsistency between plugin header (1.1.0) and composer.json (1.0.6)
+
+### Technical
+- **Code Quality**: Improved CSS organization by moving presentation styles to dedicated stylesheet classes
+
 ## [1.1.0] - 2025-12-07
 
 ### Added
