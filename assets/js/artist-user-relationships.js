@@ -1,6 +1,6 @@
 /**
  * Artist-User Relationships Tool
- * Handles AJAX for managing relationships between users and artist profiles
+ * Handles REST API calls for managing relationships between users and artist profiles
  */
 (function($) {
     'use strict';
@@ -31,23 +31,24 @@
             var artistId = $link.data('artist-id');
 
             $.ajax({
-                url: ecAdminTools.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'ec_remove_artist_user_relationship',
-                    user_id: userId,
-                    artist_id: artistId,
-                    nonce: ecAdminTools.nonces.artistUserRelationships
+                url: ecAdminTools.restUrl + 'users/' + userId + '/artists/' + artistId,
+                type: 'DELETE',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', ecAdminTools.nonce);
                 },
                 success: function(response) {
                     if (response.success) {
                         location.reload();
                     } else {
-                        alert('Error: ' + response.data);
+                        alert('Error: ' + (response.message || 'Unknown error'));
                     }
                 },
-                error: function() {
-                    alert('AJAX error occurred');
+                error: function(xhr) {
+                    var message = 'An error occurred';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    alert('Error: ' + message);
                 }
             });
         });
@@ -91,22 +92,24 @@
 
             searchTimeout = setTimeout(function() {
                 $.ajax({
-                    url: ecAdminTools.ajaxUrl,
-                    type: 'POST',
+                    url: ecAdminTools.restUrl + 'users/search',
+                    type: 'GET',
                     data: {
-                        action: 'ec_search_users_for_relationship',
-                        search: query,
-                        nonce: ecAdminTools.nonces.artistUserRelationships
+                        term: query,
+                        context: 'admin'
+                    },
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-WP-Nonce', ecAdminTools.nonce);
                     },
                     success: function(response) {
-                        if (response.success && response.data.length > 0) {
+                        if (response && response.length > 0) {
                             var html = '';
-                            response.data.forEach(function(user) {
-                                html += '<div class="ec-user-search-item" data-user-id="' + user.ID + '">' +
-                                       '<img src="' + user.avatar + '" width="32" height="32">' +
+                            response.forEach(function(user) {
+                                html += '<div class="ec-user-search-item" data-user-id="' + user.id + '">' +
+                                       '<img src="' + user.avatar_url + '" width="32" height="32">' +
                                        '<div class="ec-user-search-item-info">' +
                                        '<div class="ec-user-search-item-name">' + user.display_name + '</div>' +
-                                       '<div class="ec-user-search-item-meta">' + user.user_login + ' (' + user.user_email + ')</div>' +
+                                       '<div class="ec-user-search-item-meta">' + user.username + ' (' + user.email + ')</div>' +
                                        '</div>' +
                                        '</div>';
                             });
@@ -136,24 +139,29 @@
             $('#ec-user-search-results').html('<div class="ec-user-search-loading">Adding user...</div>');
 
             $.ajax({
-                url: ecAdminTools.ajaxUrl,
+                url: ecAdminTools.restUrl + 'users/' + userId + '/artists',
                 type: 'POST',
-                data: {
-                    action: 'ec_add_artist_user_relationship',
-                    user_id: userId,
-                    artist_id: artistId,
-                    nonce: ecAdminTools.nonces.artistUserRelationships
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    artist_id: artistId
+                }),
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', ecAdminTools.nonce);
                 },
                 success: function(response) {
                     if (response.success) {
                         location.reload();
                     } else {
-                        alert('Error: ' + response.data);
+                        alert('Error: ' + (response.message || 'Unknown error'));
                         $('#ec-user-search-modal').fadeOut();
                     }
                 },
-                error: function() {
-                    alert('AJAX error occurred');
+                error: function(xhr) {
+                    var message = 'An error occurred';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    alert('Error: ' + message);
                     $('#ec-user-search-modal').fadeOut();
                 }
             });

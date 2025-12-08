@@ -1,6 +1,12 @@
 <?php
 /**
- * Syncs team members from extrachill.com and manages manual overrides (requires extrachill-users)
+ * Team Member Management Tool
+ *
+ * Sync team members from extrachill.com and manage manual overrides.
+ * Uses REST API endpoints for all operations.
+ *
+ * @package ExtraChillAdminTools
+ * @since 1.0.0
  */
 
 if (!defined('ABSPATH')) {
@@ -33,7 +39,6 @@ add_action('admin_enqueue_scripts', function($hook) {
 });
 
 add_filter('extrachill_admin_tools', function($tools) {
-    // Only load if extrachill-users plugin function exists
     if (!function_exists('ec_is_team_member')) {
         return $tools;
     }
@@ -52,7 +57,6 @@ function ec_team_member_management_page() {
         wp_die('Unauthorized access');
     }
 
-    // Get search query
     $search = isset($_GET['ec_user_search']) ? sanitize_text_field(wp_unslash($_GET['ec_user_search'])) : '';
     $paged = isset($_GET['ec_paged']) ? absint($_GET['ec_paged']) : 1;
     $per_page = 50;
@@ -84,11 +88,10 @@ function ec_team_member_management_page() {
 
         <!-- User Table -->
         <?php
-        // Get users
         $user_args = array(
             'number' => $per_page,
             'offset' => ($paged - 1) * $per_page,
-            'blog_id' => 0, // All network users
+            'blog_id' => 0,
         );
 
         if ($search) {
@@ -118,7 +121,6 @@ function ec_team_member_management_page() {
                     $is_team_member = function_exists('ec_is_team_member') ? ec_is_team_member($user->ID) : false;
                     $manual_override = get_user_meta($user->ID, 'extrachill_team_manual_override', true);
 
-                    // Determine source
                     if ($manual_override === 'add') {
                         $source = 'Manual: Add';
                     } elseif ($manual_override === 'remove') {
@@ -166,113 +168,4 @@ function ec_team_member_management_page() {
         <?php endif; ?>
     </div>
     <?php
-}
-
-add_action('wp_ajax_ec_sync_team_members', 'ec_ajax_sync_team_members');
-function ec_ajax_sync_team_members() {
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized access');
-    }
-
-    if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'ec_sync_team_members_nonce')) {
-        wp_send_json_error('Invalid nonce');
-    }
-
-    if (!function_exists('ec_has_main_site_account')) {
-        wp_send_json_error('Multisite plugin functions not available');
-    }
-
-    $report = ec_sync_team_members();
-
-    wp_send_json_success($report);
-}
-
-function ec_sync_team_members() {
-    $report = array(
-        'total_users' => 0,
-        'users_updated' => 0,
-        'users_skipped_override' => 0,
-        'users_with_main_site_account' => 0,
-    );
-
-    // Get all network users
-    $users = get_users(array(
-        'blog_id' => 0,
-        'fields' => 'ID'
-    ));
-
-    $report['total_users'] = count($users);
-
-    foreach ($users as $user_id) {
-        // Check for manual override
-        $manual_override = get_user_meta($user_id, 'extrachill_team_manual_override', true);
-
-        if ($manual_override === 'add' || $manual_override === 'remove') {
-            $report['users_skipped_override']++;
-            continue;
-        }
-
-        // Check main site account
-        $has_main_account = ec_has_main_site_account($user_id);
-
-        if ($has_main_account) {
-            $report['users_with_main_site_account']++;
-
-            $current_status = get_user_meta($user_id, 'extrachill_team', true);
-            if ($current_status != 1) {
-                update_user_meta($user_id, 'extrachill_team', 1);
-                $report['users_updated']++;
-            }
-        } else {
-            $current_status = get_user_meta($user_id, 'extrachill_team', true);
-            if ($current_status == 1) {
-                update_user_meta($user_id, 'extrachill_team', 0);
-                $report['users_updated']++;
-            }
-        }
-    }
-
-    return $report;
-}
-
-add_action('wp_ajax_ec_manage_team_member', 'ec_ajax_manage_team_member');
-function ec_ajax_manage_team_member() {
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized access');
-    }
-
-    if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'ec_manage_team_member_nonce')) {
-        wp_send_json_error('Invalid nonce');
-    }
-
-    $user_id = isset($_POST['user_id']) ? absint($_POST['user_id']) : 0;
-    $action = isset($_POST['team_action']) ? sanitize_text_field(wp_unslash($_POST['team_action'])) : '';
-
-    if (!$user_id || !$action) {
-        wp_send_json_error('Missing required parameters');
-    }
-
-    switch ($action) {
-        case 'force_add':
-            update_user_meta($user_id, 'extrachill_team_manual_override', 'add');
-            update_user_meta($user_id, 'extrachill_team', 1);
-            wp_send_json_success('User forced to team member');
-            break;
-
-        case 'force_remove':
-            update_user_meta($user_id, 'extrachill_team_manual_override', 'remove');
-            update_user_meta($user_id, 'extrachill_team', 0);
-            wp_send_json_success('User forced to non-team member');
-            break;
-
-        case 'reset_auto':
-            delete_user_meta($user_id, 'extrachill_team_manual_override');
-            $has_main_account = function_exists('ec_has_main_site_account') ? ec_has_main_site_account($user_id) : false;
-            update_user_meta($user_id, 'extrachill_team', $has_main_account ? 1 : 0);
-            wp_send_json_success('User reset to auto sync');
-            break;
-
-        default:
-            wp_send_json_error('Invalid action');
-    }
 }

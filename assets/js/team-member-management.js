@@ -1,6 +1,10 @@
 /**
  * Team Member Management Tool
- * Handles AJAX for syncing team members and managing user overrides
+ *
+ * Uses REST API for syncing team members and managing user overrides.
+ *
+ * @package ExtraChillAdminTools
+ * @since 1.0.0
  */
 (function($) {
     'use strict';
@@ -21,37 +25,40 @@
             $button.prop('disabled', true).text('Syncing...');
             $report.hide();
 
-            $.ajax({
-                url: ecAdminTools.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'ec_sync_team_members',
-                    nonce: ecAdminTools.nonces.syncTeamMembers
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $report.html(
-                            '<strong>Sync Complete!</strong><br>' +
-                            'Total Users: ' + response.data.total_users + '<br>' +
-                            'Users Updated: ' + response.data.users_updated + '<br>' +
-                            'Users Skipped (Manual Override): ' + response.data.users_skipped_override + '<br>' +
-                            'Users with Main Site Account: ' + response.data.users_with_main_site_account
-                        ).show();
-
-                        // Reload page after 2 seconds to show updated data
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        alert('Error: ' + response.data);
-                    }
-                },
-                error: function() {
-                    alert('AJAX error occurred');
-                },
-                complete: function() {
-                    $button.prop('disabled', false).text('Sync Team Members from Main Site');
+            fetch(ecAdminTools.restUrl + 'admin/team-members/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': ecAdminTools.nonce
                 }
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    return { ok: response.ok, data: data };
+                });
+            })
+            .then(function(result) {
+                if (result.ok) {
+                    $report.html(
+                        '<strong>Sync Complete!</strong><br>' +
+                        'Total Users: ' + result.data.total_users + '<br>' +
+                        'Users Updated: ' + result.data.users_updated + '<br>' +
+                        'Users Skipped (Manual Override): ' + result.data.users_skipped_override + '<br>' +
+                        'Users with Main Site Account: ' + result.data.users_with_main_site_account
+                    ).show();
+
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    alert('Error: ' + (result.data.message || 'Unknown error'));
+                }
+            })
+            .catch(function() {
+                alert('Network error - please try again');
+            })
+            .finally(function() {
+                $button.prop('disabled', false).text('Sync Team Members from Main Site');
             });
         });
     }
@@ -72,27 +79,32 @@
                 return;
             }
 
-            $.ajax({
-                url: ecAdminTools.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'ec_manage_team_member',
-                    user_id: userId,
-                    team_action: action,
-                    nonce: ecAdminTools.nonces.manageTeamMember
+            fetch(ecAdminTools.restUrl + 'admin/team-members/' + userId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': ecAdminTools.nonce
                 },
-                success: function(response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + response.data);
-                        $select.val('');
-                    }
-                },
-                error: function() {
-                    alert('AJAX error occurred');
+                body: JSON.stringify({
+                    action: action
+                })
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    return { ok: response.ok, data: data };
+                });
+            })
+            .then(function(result) {
+                if (result.ok) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (result.data.message || 'Unknown error'));
                     $select.val('');
                 }
+            })
+            .catch(function() {
+                alert('Network error - please try again');
+                $select.val('');
             });
         });
     }

@@ -1,6 +1,8 @@
 /**
  * Ad-Free License Management JavaScript
  *
+ * Uses REST API endpoints for license management.
+ *
  * @package ExtraChillAdminTools
  * @since 1.0.0
  */
@@ -30,39 +32,44 @@
             $btn.prop('disabled', true).text('Granting...');
             $result.hide();
 
-            $.ajax({
-                url: ecAdFree.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'ec_grant_ad_free',
-                    nonce: ecAdFree.nonce,
+            fetch(ecAdFree.rest_url + 'admin/ad-free-license/grant', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': ecAdFree.nonce
+                },
+                body: JSON.stringify({
                     user_identifier: userIdentifier
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $result.removeClass('error').addClass('success')
-                            .text(response.data.message)
-                            .show();
-                        $('#ec-user-search').val('');
-
-                        // Reload page after 1.5 seconds to show new license holder
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        $result.removeClass('success').addClass('error')
-                            .text('Error: ' + response.data)
-                            .show();
-                    }
-                },
-                error: function() {
-                    $result.removeClass('success').addClass('error')
-                        .text('AJAX error - please try again')
+                })
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    return { ok: response.ok, data: data };
+                });
+            })
+            .then(function(result) {
+                if (result.ok) {
+                    $result.removeClass('error').addClass('success')
+                        .text(result.data.message)
                         .show();
-                },
-                complete: function() {
-                    $btn.prop('disabled', false).text('Grant License');
+                    $('#ec-user-search').val('');
+
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    $result.removeClass('success').addClass('error')
+                        .text('Error: ' + result.data.message)
+                        .show();
                 }
+            })
+            .catch(function() {
+                $result.removeClass('success').addClass('error')
+                    .text('Network error - please try again')
+                    .show();
+            })
+            .finally(function() {
+                $btn.prop('disabled', false).text('Grant License');
             });
         });
 
@@ -79,38 +86,38 @@
 
             $btn.prop('disabled', true).text('Revoking...');
 
-            $.ajax({
-                url: ecAdFree.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'ec_revoke_ad_free',
-                    nonce: ecAdFree.nonce,
-                    user_id: userId
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Fade out and remove row
-                        $row.css('background-color', '#ffcccc');
-                        setTimeout(function() {
-                            $row.fadeOut(400, function() {
-                                $(this).remove();
+            fetch(ecAdFree.rest_url + 'admin/ad-free-license/' + userId, {
+                method: 'DELETE',
+                headers: {
+                    'X-WP-Nonce': ecAdFree.nonce
+                }
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    return { ok: response.ok, data: data };
+                });
+            })
+            .then(function(result) {
+                if (result.ok) {
+                    $row.css('background-color', '#ffcccc');
+                    setTimeout(function() {
+                        $row.fadeOut(400, function() {
+                            $(this).remove();
 
-                                // Reload if no more rows
-                                var remainingRows = $('table.wp-list-table tbody tr').length;
-                                if (remainingRows === 0) {
-                                    location.reload();
-                                }
-                            });
-                        }, 300);
-                    } else {
-                        alert('Error: ' + response.data);
-                        $btn.prop('disabled', false).text('Revoke License');
-                    }
-                },
-                error: function() {
-                    alert('AJAX error - please try again');
+                            var remainingRows = $('table.wp-list-table tbody tr').length;
+                            if (remainingRows === 0) {
+                                location.reload();
+                            }
+                        });
+                    }, 300);
+                } else {
+                    alert('Error: ' + result.data.message);
                     $btn.prop('disabled', false).text('Revoke License');
                 }
+            })
+            .catch(function() {
+                alert('Network error - please try again');
+                $btn.prop('disabled', false).text('Revoke License');
             });
         });
 

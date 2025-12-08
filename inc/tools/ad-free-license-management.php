@@ -3,7 +3,7 @@
  * Ad-Free License Management Tool
  *
  * Manage ad-free licenses for Extra Chill platform users.
- * Grant, revoke, and view license holders with AJAX interface.
+ * Grant, revoke, and view license holders via REST API interface.
  * Integrates with extrachill-multisite ad-free license validation system.
  *
  * @package ExtraChillAdminTools
@@ -35,8 +35,8 @@ add_action('admin_enqueue_scripts', function($hook) {
     );
 
     wp_localize_script('ec-ad-free-management', 'ecAdFree', array(
-        'nonce' => wp_create_nonce('ec_ad_free_management'),
-        'ajax_url' => admin_url('admin-ajax.php')
+        'nonce' => wp_create_nonce('wp_rest'),
+        'rest_url' => rest_url('extrachill/v1/')
     ));
 });
 
@@ -168,80 +168,4 @@ function ec_ad_free_license_management_page() {
         </div>
     </div>
     <?php
-}
-
-add_action('wp_ajax_ec_grant_ad_free', 'ec_grant_ad_free_ajax');
-function ec_grant_ad_free_ajax() {
-    check_ajax_referer('ec_ad_free_management', 'nonce');
-
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized');
-    }
-
-    $user_identifier = isset($_POST['user_identifier']) ? sanitize_text_field(wp_unslash($_POST['user_identifier'])) : '';
-
-    if (empty($user_identifier)) {
-        wp_send_json_error('No user specified');
-    }
-
-    $user = get_user_by('login', $user_identifier);
-    if (!$user) {
-        $user = get_user_by('email', $user_identifier);
-    }
-
-    if (!$user) {
-        wp_send_json_error('User not found');
-    }
-
-    $existing = get_user_meta($user->ID, 'extrachill_ad_free_purchased', true);
-    if ($existing) {
-        wp_send_json_error('User already has ad-free license');
-    }
-
-    $license_data = array(
-        'purchased' => current_time('mysql'),
-        'order_id' => null,
-        'username' => $user->user_login
-    );
-
-    update_user_meta($user->ID, 'extrachill_ad_free_purchased', $license_data);
-
-    wp_send_json_success(array(
-        'message' => "Ad-free license granted to {$user->user_login}",
-        'user_id' => $user->ID,
-        'username' => $user->user_login,
-        'email' => $user->user_email
-    ));
-}
-
-add_action('wp_ajax_ec_revoke_ad_free', 'ec_revoke_ad_free_ajax');
-function ec_revoke_ad_free_ajax() {
-    check_ajax_referer('ec_ad_free_management', 'nonce');
-
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized');
-    }
-
-    $user_id = isset($_POST['user_id']) ? absint($_POST['user_id']) : 0;
-
-    if (!$user_id) {
-        wp_send_json_error('No user ID specified');
-    }
-
-    $user = get_userdata($user_id);
-    if (!$user) {
-        wp_send_json_error('User not found');
-    }
-
-    $existing = get_user_meta($user_id, 'extrachill_ad_free_purchased', true);
-    if (!$existing) {
-        wp_send_json_error('User does not have ad-free license');
-    }
-
-    delete_user_meta($user_id, 'extrachill_ad_free_purchased');
-
-    wp_send_json_success(array(
-        'message' => "Ad-free license revoked for {$user->user_login}",
-        'user_id' => $user_id
-    ));
 }

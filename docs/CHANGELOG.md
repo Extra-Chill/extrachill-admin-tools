@@ -2,8 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.1.0] - 2025-12-07
+
+### Added
+- **Social ID Backfill Tool**: New conditional tool for artist.extrachill.com that performs one-time migration to assign stable social IDs to artist profiles using extrachill-api helpers. Includes dry-run capability and comprehensive reporting.
+
+### Changed
+- **REST API Migration**: Migrated all AJAX operations to REST API endpoints for improved architecture and consistency.
+  - Ad-Free License Management: Now uses `/admin/ad-free-license/grant` and `/admin/ad-free-license/{userId}` endpoints
+  - Artist-User Relationships: Now uses `/users/{userId}/artists/{artistId}`, `/users/search`, and `/users/{userId}/artists` endpoints
+  - Team Member Management: Now uses `/admin/team-members/sync` and `/admin/team-members/{userId}` endpoints
+- **JavaScript Modernization**: Converted all AJAX calls from jQuery to modern fetch API with improved error handling
+- **Admin Interface**: Updated `wp_localize_script` to use REST API URLs and single nonce system
+
+### Technical
+- **Database Enhancements**: Improved activation hook with better prepared statements, enhanced 404_log table management, and improved error handling
+- **Code Quality**: Added comprehensive PHP docblocks, improved code formatting, and consistent spacing throughout
+- **Security**: Enhanced nonce verification and input sanitization across all tools
 
 ## [1.0.6] - 2025-12-05
 
