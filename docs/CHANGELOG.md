@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-10
+
+### Added
+- **Scaled Image URL Fix Tool**: New admin tool to scan and fix broken image URLs in post content by replacing with available -scaled versions. Supports regular posts and bbPress forum content with scan/fix operations.
+
+### Changed
+- **Dynamic Site Configuration**: Replaced hardcoded blog IDs and URLs with dynamic functions (`ec_get_blog_id()`, `ec_get_site_url()`) for better maintainability across multisite network
+- **CSS Standardization**: Migrated all CSS files to use consistent font size variables and standardized indentation for improved maintainability
+
+### Technical
+- **Code Quality**: Enhanced multisite compatibility by removing hardcoded site references
+- **Styling**: Improved CSS consistency across all tool stylesheets
+
 ## [1.1.1] - 2025-12-08
 
 ### Removed

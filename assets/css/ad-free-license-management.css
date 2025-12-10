@@ -19,8 +19,8 @@
 }
 
 .ec-grant-section h3 {
-    margin-top: 0;
-    font-size: 18px;
+	margin-top: 0;
+	font-size: var(--font-size-body);
 }
 
 .ec-grant-section p {
@@ -35,8 +35,8 @@
 }
 
 .ec-grant-form input[type="text"] {
-    padding: 8px 12px;
-    font-size: 14px;
+	padding: 8px 12px;
+	font-size: var(--font-size-sm);
 }
 
 #ec-grant-result {
@@ -69,8 +69,8 @@
 }
 
 .ec-license-holders-section h3 {
-    margin-top: 0;
-    font-size: 18px;
+	margin-top: 0;
+	font-size: var(--font-size-body);
 }
 
 .ec-search-form {

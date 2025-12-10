@@ -256,7 +256,7 @@ function ec_ajax_approve_artist_access_email() {
  * @param WP_User $user The approved user.
  */
 function ec_send_artist_access_approval_email( $user ) {
-	$login_url = 'https://artist.extrachill.com/login/?access_approved=true';
+	$login_url = ec_get_site_url( 'artist' ) . '/login/?access_approved=true';
 
 	$subject = __( 'Your Artist Platform Access is Approved!', 'extrachill-admin-tools' );
 

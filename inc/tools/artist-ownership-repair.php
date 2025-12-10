@@ -16,9 +16,9 @@ if (!defined('ABSPATH')) {
 
 add_filter('extrachill_admin_tools', function($tools) {
     $current_blog_id = get_current_blog_id();
+    $artist_blog_id   = function_exists('ec_get_blog_id') ? ec_get_blog_id('artist') : null;
 
-    // Only load on artist.extrachill.com
-    if ($current_blog_id === 4) {
+    if ($artist_blog_id && $current_blog_id === $artist_blog_id) {
         $tools[] = array(
             'id' => 'artist-ownership-repair',
             'title' => 'Artist Profile Ownership Repair',

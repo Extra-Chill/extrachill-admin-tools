@@ -23,15 +23,15 @@
 }
 
 .ec-qr-input-group input[type="url"] {
-    padding: 8px 12px;
-    font-size: 14px;
-    line-height: 1.5;
+	padding: 8px 12px;
+	font-size: var(--font-size-sm);
+	line-height: 1.5;
 }
 
 #ec-qr-generate-btn {
-    font-size: 14px;
-    padding: 6px 20px;
-    height: auto;
+	font-size: var(--font-size-sm);
+	padding: 6px 20px;
+	height: auto;
 }
 
 #ec-qr-result {
@@ -64,9 +64,9 @@
 }
 
 #ec-qr-download-btn {
-    font-size: 14px;
-    padding: 8px 24px;
-    height: auto;
+	font-size: var(--font-size-sm);
+	padding: 8px 24px;
+	height: auto;
 }
 
 #ec-qr-error {

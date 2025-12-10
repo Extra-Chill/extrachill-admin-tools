@@ -12,15 +12,15 @@
 }
 
 .ec-nested-tabs a {
-    display: inline-block;
-    padding: 8px 16px;
-    text-decoration: none;
-    border: 1px solid var(--border-color);
-    border-bottom: none;
-    background: #e0e0e0;
-    color: #333;
-    font-size: 14px;
-    transition: background 0.2s;
+	display: inline-block;
+	padding: 8px 16px;
+	text-decoration: none;
+	border: 1px solid var(--border-color);
+	border-bottom: none;
+	background: #e0e0e0;
+	color: #333;
+	font-size: var(--font-size-sm);
+	transition: background 0.2s;
 }
 
 .ec-nested-tabs a:hover {
@@ -58,11 +58,11 @@
 
 /* Generic Badge Styles */
 .ec-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    font-weight: 600;
+	display: inline-block;
+	padding: 4px 8px;
+	border-radius: 3px;
+	font-size: var(--font-size-xs);
+	font-weight: 600;
 }
 
 .ec-badge-primary {
@@ -114,10 +114,10 @@
 
 /* Generic Empty State */
 .ec-empty-state {
-    padding: 40px;
-    text-align: center;
-    color: #646970;
-    font-size: 14px;
+	padding: 40px;
+	text-align: center;
+	color: #646970;
+	font-size: var(--font-size-sm);
 }
 
 /* Generic Section Containers */
@@ -155,15 +155,15 @@
 }
 
 .ec-modal-close {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
-    background: none;
-    border: none;
-    line-height: 1;
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	font-size: var(--font-size-xl);
+	cursor: pointer;
+	color: #666;
+	background: none;
+	border: none;
+	line-height: 1;
 }
 
 .ec-modal-close:hover {
@@ -200,8 +200,8 @@
 
 /* Generic Meta Text */
 .ec-meta {
-    font-size: 12px;
-    color: #646970;
+	font-size: var(--font-size-xs);
+	color: #646970;
 }
 
 /* Generic Report/Notice Box */

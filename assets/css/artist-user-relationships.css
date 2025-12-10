@@ -29,12 +29,12 @@
 /* Member Count Badge */
 .ec-member-count {
     display: inline-block;
-    background: #2271b1;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: 600;
+	background: #2271b1;
+	color: white;
+	padding: 3px 8px;
+	border-radius: 10px;
+	font-size: var(--font-size-xs);
+	font-weight: 600;
 }
 
 /* Member List */
@@ -83,12 +83,12 @@
 }
 
 .ec-user-search-close {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	font-size: var(--font-size-xl);
+	cursor: pointer;
+	color: #666;
 }
 
 .ec-user-search-close:hover {
@@ -96,10 +96,10 @@
 }
 
 .ec-user-search-input {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    margin-bottom: 15px;
+	width: 100%;
+	padding: 10px;
+	font-size: var(--font-size-sm);
+	margin-bottom: 15px;
 }
 
 .ec-user-search-results {
@@ -140,8 +140,8 @@
 }
 
 .ec-user-search-item-meta {
-    font-size: 12px;
-    color: #666;
+	font-size: var(--font-size-xs);
+	color: #666;
 }
 
 .ec-user-search-loading {

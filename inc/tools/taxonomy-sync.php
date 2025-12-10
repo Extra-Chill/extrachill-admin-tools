@@ -47,10 +47,12 @@ function ec_taxonomy_sync_admin_page() {
         'venue' => 'Venue',
     );
 
-    // Available target sites
-    $target_sites = array(
-        7 => 'events.extrachill.com',
-    );
+    $target_sites = array();
+
+    $events_blog_id = function_exists('ec_get_blog_id') ? ec_get_blog_id('events') : null;
+    if ($events_blog_id) {
+        $target_sites[$events_blog_id] = 'events.extrachill.com';
+    }
 
     ?>
     <div class="ec-taxonomy-sync-wrap">
@@ -196,7 +198,16 @@ function ec_sync_term_recursive($term, $taxonomy, $hierarchy, $parent_id_on_targ
  * @return array Report with breakdown by taxonomy and site
  */
 function ec_perform_taxonomy_sync($target_blog_ids, $taxonomies) {
-    $source_blog_id = 1; // extrachill.com
+    $source_blog_id = function_exists('ec_get_blog_id') ? ec_get_blog_id('main') : null;
+    if (!$source_blog_id) {
+        return array(
+            'total_terms_processed' => 0,
+            'total_terms_created' => 0,
+            'total_terms_skipped' => 0,
+            'breakdown' => array(),
+        );
+    }
+
     $report = array(
         'total_terms_processed' => 0,
         'total_terms_created' => 0,
