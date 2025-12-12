@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-12-11
+
+### Added
+- **Bio Decoupling Migration Tool**: One-time migration tool to decouple artist profile bios from link page bios by copying content to dedicated meta fields
+- **Block Namespace Migration Tool**: Migration utility to consolidate Gutenberg blocks from plugin-specific namespaces (`extrachill-artist-platform/*`, `extrachill-blocks/*`) to unified `extrachill/*` namespace
+
+### Technical
+- **Tool Registration**: Added two new conditional admin tools following existing filter-based registration pattern
+- **Data Migration**: Implemented safe one-time migration logic with comprehensive reporting and error handling
+
 ## [1.2.0] - 2025-12-10
 
 ### Added
