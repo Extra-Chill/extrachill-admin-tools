@@ -13,17 +13,15 @@ if (!defined('ABSPATH')) {
 /**
  * Register the block namespace migration tool
  */
-function extrachill_admin_tools_register_block_namespace_migration() {
-    add_submenu_page(
-        'extrachill-admin-tools',
-        __('Block Namespace Migration', 'extrachill-admin-tools'),
-        __('Block Namespace Migration', 'extrachill-admin-tools'),
-        'manage_options',
-        'block-namespace-migration',
-        'extrachill_admin_tools_block_namespace_migration_page'
+add_filter('extrachill_admin_tools', function($tools) {
+    $tools[] = array(
+        'id' => 'block-namespace-migration',
+        'title' => 'Block Namespace Migration',
+        'description' => 'Migrate Gutenberg blocks from plugin-specific namespaces to unified extrachill namespace.',
+        'callback' => 'extrachill_admin_tools_block_namespace_migration_page'
     );
-}
-add_action('admin_menu', 'extrachill_admin_tools_register_block_namespace_migration', 20);
+    return $tools;
+}, 10);
 
 /**
  * Admin page for block namespace migration
@@ -135,13 +133,24 @@ function extrachill_admin_tools_run_block_namespace_migration() {
 
         // Replace block comments in content
         foreach ($namespace_mappings as $old_namespace => $new_namespace) {
-            $old_pattern = '<!-- wp:' . preg_quote($old_namespace, '/') . ' ';
-            $new_pattern = '<!-- wp:' . $new_namespace . ' ';
+            // Match opening/self-closing blocks: <!-- wp:old-namespace/block ... -->
+            // Handles: space (attributes), / (self-closing), { (JSON attrs), > (end of comment)
+            $opening_pattern = '/<!-- wp:' . preg_quote($old_namespace, '/') . '(\s|\/|{|>)/';
+            $opening_replacement = '<!-- wp:' . $new_namespace . '$1';
 
-            if (strpos($updated_content, $old_pattern) !== false) {
-                $updated_content = str_replace($old_pattern, $new_pattern, $updated_content);
+            if (preg_match($opening_pattern, $updated_content)) {
+                $match_count = preg_match_all($opening_pattern, $updated_content);
+                $updated_content = preg_replace($opening_pattern, $opening_replacement, $updated_content);
                 $post_updated = true;
-                $blocks_updated++;
+                $blocks_updated += $match_count;
+            }
+
+            // Match closing blocks: <!-- /wp:old-namespace/block -->
+            $closing_pattern = '/<!-- \/wp:' . preg_quote($old_namespace, '/') . '/';
+            $closing_replacement = '<!-- /wp:' . $new_namespace;
+
+            if (preg_match($closing_pattern, $updated_content)) {
+                $updated_content = preg_replace($closing_pattern, $closing_replacement, $updated_content);
             }
         }
 

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-12-11
+
+### Added
+- **Network Declaration**: Added "Network: true" to plugin header for explicit multisite support
+
+### Changed
+- **Scaled Image URL Fix Tool**: Major rewrite for multisite compatibility - now fixes broken -scaled image URLs by adding /sites/{blog_id}/ path and converting to -scaled-1 variant with HTTP verification
+- **Block Namespace Migration Tool**: Improved regex patterns for more accurate block namespace replacement, including opening, self-closing, and closing blocks. Migrated to filter-based registration pattern
+
+### Removed
+- **Bio Decoupling Migration Tool**: Removed completed one-time migration tool that decoupled artist profile bios from link page bios
+
+### Technical
+- **Code Quality**: Improved code formatting and consistency across all modified files
+- **Multisite Support**: Enhanced scaled image URL fixing with proper multisite path handling and URL existence verification
+
 ## [1.2.1] - 2025-12-11
 
 ### Added
