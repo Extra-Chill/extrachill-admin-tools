@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-12-13
+
+### Added
+- **Link Page Font Migration Tool**: One-time migration tool to normalize link page font values from legacy "WilcoLoftSans" to theme-aligned "Loft Sans" for title and body font-family CSS variables
+
+### Removed
+- **Scaled Image URL Fix Tool**: Removed completed one-time migration tool
+- **Block Namespace Migration Tool**: Removed completed one-time migration tool
+
+### Technical
+- **Code Cleanup**: Removed obsolete migration tools that had completed their purpose
+
 ## [1.2.2] - 2025-12-11
 
 ### Added
