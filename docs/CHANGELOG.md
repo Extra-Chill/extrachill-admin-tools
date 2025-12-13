@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical
 - **Code Cleanup**: Removed obsolete migration tools that had completed their purpose
 
+## [1.2.4] - 2025-12-13
+
+### Removed
+- **Link Page Font Migration Tool**: Removed completed one-time migration tool that normalized link page font values from legacy "WilcoLoftSans" to theme-aligned "Loft Sans"
+
+### Technical
+- **Code Cleanup**: Removed obsolete migration tool files (PHP and JavaScript assets)
+
 ## [1.2.2] - 2025-12-11
 
 ### Added
