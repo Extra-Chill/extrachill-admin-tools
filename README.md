@@ -49,6 +49,13 @@ composer test                  # Run tests
 ./build.sh                     # Create production build
 ```
 
+## Comprehensive Documentation
+
+For detailed tool documentation, database schemas, and API specifications, see:
+- `/docs/tools/` - Individual tool documentation with examples and use cases
+- `/docs/api-patterns.md` - Common AJAX and REST API patterns used throughout
+- `/docs/CHANGELOG.md` - Version history and updates
+
 ## License
 
 GPL v2 or later

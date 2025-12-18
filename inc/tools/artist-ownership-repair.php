@@ -256,8 +256,8 @@ function artist_ownership_repair_ajax_handler() {
     }
 
     // Check if artist platform plugin is active
-    if (!function_exists('bp_add_artist_membership')) {
-        wp_send_json_error(array('message' => 'Artist platform plugin not active or bp_add_artist_membership function not found'));
+    if (!function_exists('ec_add_artist_membership')) {
+        wp_send_json_error(array('message' => 'Artist platform plugin not active or ec_add_artist_membership function not found'));
     }
 
     $stats = array(
@@ -288,7 +288,7 @@ function artist_ownership_repair_ajax_handler() {
         $repair_method = '';
 
         // Step 1: Get ALL users who have this artist in their user meta (SOURCE OF TRUTH)
-        $users_with_artist = function_exists('bp_get_linked_members') ? bp_get_linked_members($artist_id) : array();
+        $users_with_artist = function_exists('ec_get_linked_members') ? ec_get_linked_members($artist_id) : array();
         $correct_member_ids = array();
 
         foreach ($users_with_artist as $user) {

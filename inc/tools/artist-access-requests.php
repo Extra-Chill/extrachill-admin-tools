@@ -26,7 +26,7 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	wp_enqueue_script(
 		'ec-artist-access-requests',
 		EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/js/artist-access-requests.js',
-		array( 'extrachill-admin-tools' ),
+		array(),
 		filemtime( EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/js/artist-access-requests.js' ),
 		true
 	);
@@ -137,118 +137,7 @@ function ec_artist_access_requests_page() {
 	<?php
 }
 
-/**
- * AJAX handler for approving artist access request
- */
-add_action( 'wp_ajax_ec_approve_artist_access', 'ec_ajax_approve_artist_access' );
-function ec_ajax_approve_artist_access() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( 'Unauthorized access' );
-	}
 
-	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'ec_artist_access_requests_nonce' ) ) {
-		wp_send_json_error( 'Invalid nonce' );
-	}
-
-	$user_id = isset( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
-	$type    = isset( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : '';
-
-	if ( ! $user_id || ! in_array( $type, array( 'artist', 'professional' ), true ) ) {
-		wp_send_json_error( 'Missing required parameters' );
-	}
-
-	$user = get_user_by( 'ID', $user_id );
-	if ( ! $user ) {
-		wp_send_json_error( 'User not found' );
-	}
-
-	// Set the appropriate meta
-	$meta_key = $type === 'artist' ? 'user_is_artist' : 'user_is_professional';
-	update_user_meta( $user_id, $meta_key, '1' );
-
-	// Delete the request
-	delete_user_meta( $user_id, 'artist_access_request' );
-
-	// Send approval email
-	ec_send_artist_access_approval_email( $user );
-
-	wp_send_json_success( 'User approved successfully' );
-}
-
-/**
- * AJAX handler for rejecting artist access request
- */
-add_action( 'wp_ajax_ec_reject_artist_access', 'ec_ajax_reject_artist_access' );
-function ec_ajax_reject_artist_access() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( 'Unauthorized access' );
-	}
-
-	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'ec_artist_access_requests_nonce' ) ) {
-		wp_send_json_error( 'Invalid nonce' );
-	}
-
-	$user_id = isset( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
-
-	if ( ! $user_id ) {
-		wp_send_json_error( 'Missing user ID' );
-	}
-
-	// Silently delete the request
-	delete_user_meta( $user_id, 'artist_access_request' );
-
-	wp_send_json_success( 'Request rejected' );
-}
-
-/**
- * Handle email link approval (one-click approve from admin email)
- */
-add_action( 'wp_ajax_ec_approve_artist_access_email', 'ec_ajax_approve_artist_access_email' );
-function ec_ajax_approve_artist_access_email() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( 'Unauthorized access' );
-	}
-
-	$user_id = isset( $_GET['user_id'] ) ? absint( $_GET['user_id'] ) : 0;
-	$type    = isset( $_GET['type'] ) ? sanitize_text_field( wp_unslash( $_GET['type'] ) ) : '';
-	$nonce   = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['nonce'] ) ) : '';
-
-	if ( ! wp_verify_nonce( $nonce, 'ec_approve_artist_access_' . $user_id ) ) {
-		wp_die( 'Invalid or expired approval link' );
-	}
-
-	if ( ! $user_id || ! in_array( $type, array( 'artist', 'professional' ), true ) ) {
-		wp_die( 'Invalid request parameters' );
-	}
-
-	$user = get_user_by( 'ID', $user_id );
-	if ( ! $user ) {
-		wp_die( 'User not found' );
-	}
-
-	// Check if already has access
-	$has_artist       = get_user_meta( $user_id, 'user_is_artist', true ) === '1';
-	$has_professional = get_user_meta( $user_id, 'user_is_professional', true ) === '1';
-
-	if ( $has_artist || $has_professional ) {
-		wp_safe_redirect( admin_url( 'tools.php?page=extrachill-admin-tools#artist-access-requests&already_approved=1' ) );
-		exit;
-	}
-
-	// Set the appropriate meta
-	$meta_key = $type === 'artist' ? 'user_is_artist' : 'user_is_professional';
-	update_user_meta( $user_id, $meta_key, '1' );
-
-	// Delete the request
-	delete_user_meta( $user_id, 'artist_access_request' );
-
-	// Send approval email
-	ec_send_artist_access_approval_email( $user );
-
-	// Redirect to admin tools with success message
-	wp_safe_redirect( admin_url( 'tools.php?page=extrachill-admin-tools#artist-access-requests&approved=1' ) );
-	exit;
-}
 
 /**
  * Send approval notification email to user

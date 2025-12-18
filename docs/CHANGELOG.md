@@ -17,6 +17,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical
 - **Code Cleanup**: Removed obsolete migration tools that had completed their purpose
 
+## [1.2.5] - 2025-12-18
+
+### Added
+- **REST API Migration**: Migrated artist access requests from admin-ajax.php to REST API endpoints (`/admin/artist-access/approve` and `/admin/artist-access/reject`) for improved architecture and consistency
+- **Comprehensive Documentation**: Added extensive API patterns and database schemas documentation in `docs/api-patterns.md`
+- **Tool Documentation Suite**: Created detailed documentation for core tools in `docs/tools/` directory:
+  - `404-error-logger.md` - Complete 404 logging system documentation with database schema, queries, and troubleshooting
+  - `artist-user-relationships.md` - Full guide to artist-user relationship management, database operations, and common issues
+  - `tag-migration.md` - Detailed tag migration tool documentation with process flow and best practices
+- **README Enhancement**: Added comprehensive documentation section linking to all new tool and API documentation
+
+### Changed
+- **JavaScript Modernization**: Converted artist access requests JavaScript from jQuery to vanilla JavaScript with fetch API for better performance and maintainability
+- **Function Name Updates**: Updated artist platform function calls from `bp_*` to `ec_*` equivalents in artist ownership repair and user relationships tools
+- **Code Architecture**: Removed legacy AJAX handlers from artist access requests tool in favor of REST API endpoints
+
+### Technical
+- **API Improvements**: Enhanced error handling and response consistency across REST endpoints
+- **Documentation Structure**: Established comprehensive documentation framework with API patterns, tool-specific guides, and troubleshooting resources
+- **Code Quality**: Improved JavaScript code organization and removed jQuery dependencies where possible
+
 ## [1.2.4] - 2025-12-13
 
 ### Removed

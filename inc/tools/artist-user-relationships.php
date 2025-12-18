@@ -141,7 +141,7 @@ function ec_render_artists_view($search) {
             </thead>
             <tbody>
                 <?php foreach ($artists as $artist):
-                    $members = function_exists('bp_get_linked_members') ? bp_get_linked_members($artist->ID) : array();
+                    $members = function_exists('ec_get_linked_members') ? ec_get_linked_members($artist->ID) : array();
                     $member_count = count($members);
                 ?>
                 <tr>
@@ -217,7 +217,7 @@ function ec_render_users_view($search) {
             </thead>
             <tbody>
                 <?php foreach ($users as $user):
-                    $artist_profiles = function_exists('bp_get_user_artist_memberships') ? bp_get_user_artist_memberships($user->ID) : array();
+                    $artist_profiles = function_exists('ec_get_user_artist_memberships') ? ec_get_user_artist_memberships($user->ID) : array();
                     $profile_count = count($artist_profiles);
                 ?>
                 <tr>
