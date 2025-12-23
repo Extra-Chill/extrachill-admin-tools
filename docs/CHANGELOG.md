@@ -5,6 +5,22 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+ ## [1.2.8] - 2025-12-23
+
+ ### Added
+ - **Festival Wire Migration**: New "Delete Source Posts" operation with batched deletion and progress tracking, allowing safe removal of source posts after successful migration
+ - **Safety Check**: Added verification preventing source deletion unless target blog has migrated posts
+
+ ### Changed
+ - **Performance**: Optimized duplicate detection during migration by using in-memory title lookup instead of per-post database queries
+ - **Refactoring**: Moved migration counters from global scope to function scope in JavaScript for better encapsulation
+ - **Clarity**: Updated button labels ("Reset Target") and confirmation messages for more precise operation descriptions
+
+ ### Documentation
+ - **Artist-User Relationships**: Updated documentation to reflect bidirectional storage with `_artist_member_ids` and `_artist_profile_ids` meta keys
+ - **API Documentation**: Migrated examples from AJAX to REST API endpoints throughout
+ - **Data Structure**: Corrected all code examples and queries to use current meta key conventions
+
  ## [1.2.7] - 2025-12-22
 
  ### Changed

@@ -5,8 +5,6 @@
     'use strict';
 
     var isRunning = false;
-    var totalMigrated = 0;
-    var totalSkipped = 0;
 
     function $(id) {
         return document.getElementById(id);
@@ -36,7 +34,7 @@
     }
 
     function setButtons(enabled) {
-        var btns = ['ec-fwm-preflight', 'ec-fwm-migrate', 'ec-fwm-reset'];
+        var btns = ['ec-fwm-preflight', 'ec-fwm-migrate', 'ec-fwm-delete-source', 'ec-fwm-reset'];
         btns.forEach(function (id) {
             var btn = $(id);
             if (btn) btn.disabled = !enabled;
@@ -70,10 +68,10 @@
         if (isRunning) return;
         isRunning = true;
         setButtons(false);
-        totalMigrated = 0;
-        totalSkipped = 0;
 
-        // Get initial counts
+        var totalMigrated = 0;
+        var totalSkipped = 0;
+
         var preflight;
         try {
             preflight = await ajax('ec_fwm_preflight');
@@ -129,12 +127,74 @@
         }
     }
 
+    async function runDeleteSource() {
+        if (isRunning) return;
+        isRunning = true;
+        setButtons(false);
+
+        var totalDeletedPosts = 0;
+        var totalDeletedAttachments = 0;
+
+        var preflight;
+        try {
+            preflight = await ajax('ec_fwm_preflight');
+        } catch (e) {
+            showOutput('Preflight failed: ' + e.message, 'error');
+            isRunning = false;
+            setButtons(true);
+            hideProgress();
+            return;
+        }
+
+        var sourceCount = preflight.source_count;
+
+        if (sourceCount === 0) {
+            showOutput('No source posts to delete.', 'error');
+            isRunning = false;
+            setButtons(true);
+            hideProgress();
+            return;
+        }
+
+        showProgress('Deleting source posts... 0 / ' + sourceCount, 0);
+
+        var lastId = 0;
+        var done = false;
+
+        while (!done) {
+            try {
+                var result = await ajax('ec_fwm_delete_source_batch', { last_id: lastId });
+                done = result.done;
+                lastId = result.last_id;
+                totalDeletedPosts += result.deleted_posts;
+                totalDeletedAttachments += result.deleted_attachments;
+
+                var percent = Math.round((totalDeletedPosts / sourceCount) * 100);
+                showProgress(
+                    'Deleted posts: ' + totalDeletedPosts + ' | Deleted attachments: ' + totalDeletedAttachments,
+                    percent
+                );
+            } catch (e) {
+                showOutput('Delete error: ' + e.message, 'error');
+                break;
+            }
+        }
+
+        isRunning = false;
+        setButtons(true);
+
+        if (done) {
+            showOutput('Delete complete!\n\nDeleted posts: ' + totalDeletedPosts + '\nDeleted attachments: ' + totalDeletedAttachments);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var preflightBtn = $('ec-fwm-preflight');
         var migrateBtn = $('ec-fwm-migrate');
+        var deleteSourceBtn = $('ec-fwm-delete-source');
         var resetBtn = $('ec-fwm-reset');
 
-        if (!preflightBtn || !migrateBtn || !resetBtn) return;
+        if (!preflightBtn || !migrateBtn || !deleteSourceBtn || !resetBtn) return;
 
         preflightBtn.addEventListener('click', async function () {
             setButtons(false);
@@ -160,8 +220,19 @@
             runMigration();
         });
 
+        deleteSourceBtn.addEventListener('click', function () {
+            if (!window.confirm('DELETE ALL festival_wire posts and their attachments from Blog 1 (source)?')) {
+                return;
+            }
+            if (!window.confirm('Are you absolutely sure? This cannot be undone.')) {
+                return;
+            }
+            hideProgress();
+            runDeleteSource();
+        });
+
         resetBtn.addEventListener('click', async function () {
-            if (!window.confirm('DELETE ALL festival_wire posts and their media on Blog 11?')) {
+            if (!window.confirm('DELETE ALL festival_wire posts and their media on Blog 11 (target)?')) {
                 return;
             }
             if (!window.confirm('Are you absolutely sure? This cannot be undone.')) {

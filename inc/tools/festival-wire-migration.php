@@ -44,6 +44,7 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 add_action( 'wp_ajax_ec_fwm_preflight', 'ec_fwm_ajax_preflight' );
 add_action( 'wp_ajax_ec_fwm_migrate_batch', 'ec_fwm_ajax_migrate_batch' );
 add_action( 'wp_ajax_ec_fwm_reset', 'ec_fwm_ajax_reset' );
+add_action( 'wp_ajax_ec_fwm_delete_source_batch', 'ec_fwm_ajax_delete_source_batch' );
 
 function ec_fwm_admin_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
@@ -56,7 +57,8 @@ function ec_fwm_admin_page() {
         <div style="margin:1rem 0;">
             <button type="button" class="button" id="ec-fwm-preflight">Check Status</button>
             <button type="button" class="button button-primary" id="ec-fwm-migrate">Run Migration</button>
-            <button type="button" class="button" id="ec-fwm-reset" style="margin-left:1rem;border-color:#dc3232;color:#dc3232;">Reset (Delete All Target Posts)</button>
+            <button type="button" class="button" id="ec-fwm-delete-source" style="margin-left:1rem;border-color:#dc3232;color:#dc3232;">Delete Source Posts</button>
+            <button type="button" class="button" id="ec-fwm-reset" style="margin-left:0.5rem;border-color:#dc3232;color:#dc3232;">Reset Target</button>
         </div>
 
         <div id="ec-fwm-progress" style="display:none;margin:1rem 0;padding:1rem;background:#f0f0f1;border-left:4px solid #2271b1;">
@@ -112,6 +114,20 @@ function ec_fwm_ajax_migrate_batch() {
 
     $last_id = isset( $_POST['last_id'] ) ? absint( $_POST['last_id'] ) : 0;
 
+    // Get all existing titles from target blog (in-memory lookup)
+    $existing_titles = array();
+    try {
+        switch_to_blog( EC_FWM_TARGET_BLOG );
+        global $wpdb;
+        $titles = $wpdb->get_col(
+            "SELECT post_title FROM {$wpdb->posts} WHERE post_type = 'festival_wire' AND post_status = 'publish'"
+        );
+        $existing_titles = array_flip( $titles );
+    } finally {
+        restore_current_blog();
+    }
+
+    // Get source posts
     $source_posts = array();
     try {
         switch_to_blog( EC_FWM_SOURCE_BLOG );
@@ -142,9 +158,10 @@ function ec_fwm_ajax_migrate_batch() {
 
     foreach ( $source_posts as $source_post ) {
         $new_last_id = (int) $source_post->ID;
-        $result = ec_fwm_migrate_single_post( $source_post );
+        $result = ec_fwm_migrate_single_post( $source_post, $existing_titles );
         if ( $result === 'migrated' ) {
             $migrated++;
+            $existing_titles[ $source_post->post_title ] = true;
         } else {
             $skipped++;
         }
@@ -158,7 +175,12 @@ function ec_fwm_ajax_migrate_batch() {
     ) );
 }
 
-function ec_fwm_migrate_single_post( $source_post ) {
+function ec_fwm_migrate_single_post( $source_post, &$existing_titles ) {
+    // Check if post with same title already exists (in-memory check)
+    if ( isset( $existing_titles[ $source_post->post_title ] ) ) {
+        return 'skipped';
+    }
+
     $source_id = (int) $source_post->ID;
 
     // Get source data while in source blog context
@@ -176,25 +198,6 @@ function ec_fwm_migrate_single_post( $source_post ) {
         );
     } finally {
         restore_current_blog();
-    }
-
-    // Check if post with same title already exists on target
-    $exists = false;
-    try {
-        switch_to_blog( EC_FWM_TARGET_BLOG );
-        global $wpdb;
-        $exists = (bool) $wpdb->get_var( $wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s AND post_title = %s LIMIT 1",
-            'festival_wire',
-            'publish',
-            $source_post->post_title
-        ) );
-    } finally {
-        restore_current_blog();
-    }
-
-    if ( $exists ) {
-        return 'skipped';
     }
 
     // Create post on target blog
@@ -360,5 +363,90 @@ function ec_fwm_ajax_reset() {
     wp_send_json_success( array(
         'deleted_posts'       => $deleted_posts,
         'deleted_attachments' => $deleted_attachments,
+    ) );
+}
+
+function ec_fwm_ajax_delete_source_batch() {
+    ec_fwm_verify_request();
+
+    $last_id = isset( $_POST['last_id'] ) ? absint( $_POST['last_id'] ) : 0;
+
+    // Safety check: only allow deletion if target has posts
+    $target_count = 0;
+    try {
+        switch_to_blog( EC_FWM_TARGET_BLOG );
+        $target_count = (int) wp_count_posts( 'festival_wire' )->publish;
+    } finally {
+        restore_current_blog();
+    }
+
+    if ( $target_count === 0 ) {
+        wp_send_json_error( 'Cannot delete source posts: target blog has no festival_wire posts. Run migration first.' );
+    }
+
+    // Get source posts to delete
+    $post_ids = array();
+    try {
+        switch_to_blog( EC_FWM_SOURCE_BLOG );
+        global $wpdb;
+        $post_ids = $wpdb->get_col( $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s AND ID > %d ORDER BY ID ASC LIMIT %d",
+            'festival_wire',
+            'publish',
+            $last_id,
+            EC_FWM_BATCH_SIZE
+        ) );
+    } finally {
+        restore_current_blog();
+    }
+
+    if ( empty( $post_ids ) ) {
+        wp_send_json_success( array(
+            'done'                => true,
+            'deleted_posts'       => 0,
+            'deleted_attachments' => 0,
+            'last_id'             => $last_id,
+        ) );
+    }
+
+    $deleted_posts = 0;
+    $deleted_attachments = 0;
+    $new_last_id = $last_id;
+
+    try {
+        switch_to_blog( EC_FWM_SOURCE_BLOG );
+
+        foreach ( $post_ids as $post_id ) {
+            $post_id = (int) $post_id;
+            $new_last_id = $post_id;
+
+            // Delete attachments where post_parent = this post
+            $attachments = get_posts( array(
+                'post_type'      => 'attachment',
+                'post_status'    => 'any',
+                'post_parent'    => $post_id,
+                'fields'         => 'ids',
+                'posts_per_page' => -1,
+                'no_found_rows'  => true,
+            ) );
+
+            foreach ( $attachments as $att_id ) {
+                wp_delete_attachment( $att_id, true );
+                $deleted_attachments++;
+            }
+
+            // Delete the post (force delete, skip trash)
+            wp_delete_post( $post_id, true );
+            $deleted_posts++;
+        }
+    } finally {
+        restore_current_blog();
+    }
+
+    wp_send_json_success( array(
+        'done'                => false,
+        'deleted_posts'       => $deleted_posts,
+        'deleted_attachments' => $deleted_attachments,
+        'last_id'             => $new_last_id,
     ) );
 }

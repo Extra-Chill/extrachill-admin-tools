@@ -10,11 +10,10 @@ The Artist-User Relationships tool manages the mappings between user accounts an
 
 ### Data Structure
 
-The relationship is stored via the artist post meta system:
-- **Post Type**: `artist_profile` (custom post type)
-- **Post Meta Key**: `_artist_members` (internal array/serialized data)
-- **Data Format**: Serialized PHP array of user IDs linked to artist profile
-- **Reverse Link**: Users may have meta indicating primary/secondary artist associations
+The relationship is stored bidirectionally:
+- **Artist post type**: `artist_profile`
+- **Artist post meta**: `_artist_member_ids` (array of user IDs)
+- **User meta**: `_artist_profile_ids` (array of artist_profile post IDs)
 
 ### Relationship Flow
 
@@ -64,52 +63,39 @@ Identifies data integrity issues:
 - **Orphaned Users**: User accounts referenced in artist meta but deleted
 - Provides cleanup/repair actions for each issue type
 
-## AJAX Handlers
+## REST API Calls
 
-The tool uses AJAX for real-time relationship management without page reloads.
+The admin UI uses REST routes registered in the network-activated `extrachill-api` plugin.
+
+> The JavaScript for this tool calls these endpoints via `ecAdminTools.restUrl` and sends the nonce as `X-WP-Nonce`.
 
 ### Add User to Artist
 
 **Request**:
-```javascript
-POST /wp-admin/admin-ajax.php
-{
-    'action': 'ec_artist_user_add',
-    'user_id': 123,
-    'artist_id': 456,
-    'nonce': 'wp_rest_nonce'
-}
+```http
+POST /wp-json/extrachill/v1/users/{user_id}/artists
+Content-Type: application/json
+X-WP-Nonce: <nonce>
+
+{"artist_id":456}
 ```
 
-**Response** (Success):
+**Response (Success)**:
 ```json
 {
-    "success": true,
-    "message": "User added to artist team",
-    "user_name": "John Doe",
-    "artist_name": "The Band Name"
-}
-```
-
-**Response** (Error):
-```json
-{
-    "success": false,
-    "message": "User already linked to this artist"
+  "success": true,
+  "message": "Artist relationship added.",
+  "user_id": 123,
+  "artist_id": 456
 }
 ```
 
 ### Remove User from Artist
 
 **Request**:
-```javascript
-POST /wp-admin/admin-ajax.php
-{
-    'action': 'ec_artist_user_remove',
-    'user_id': 123,
-    'artist_id': 456,
-    'nonce': 'wp_rest_nonce'
-}
+```http
+DELETE /wp-json/extrachill/v1/users/{user_id}/artists/{artist_id}
+X-WP-Nonce: <nonce>
 ```
 
 ### Validation Checks
@@ -127,7 +113,7 @@ Before adding relationship, tool validates:
 
 ```php
 $artist_id = 456;
-$members = get_post_meta($artist_id, '_artist_members', true);
+$members = get_post_meta( $artist_id, '_artist_member_ids', true );
 // Returns: [123, 124, 125] (array of user IDs)
 ```
 
@@ -136,14 +122,9 @@ $members = get_post_meta($artist_id, '_artist_members', true);
 ```php
 $user_id = 123;
 $user_artists = get_posts(array(
-    'post_type' => 'artist_profile',
-    'meta_query' => array(
-        array(
-            'key' => '_artist_members',
-            'value' => (string)$user_id,
-            'compare' => 'LIKE'
-        )
-    )
+    'post_type'      => 'artist_profile',
+    'post__in'       => (array) get_user_meta( $user_id, '_artist_profile_ids', true ),
+    'posts_per_page' => -1,
 ));
 // Returns: WP_Post array of artist profiles user is linked to
 ```
@@ -156,9 +137,10 @@ global $wpdb;
 // Find user IDs referenced in artist meta that don't exist in wp_users
 $orphaned_users = $wpdb->get_results(
     "SELECT DISTINCT pm.meta_value as user_id
-     FROM {$wpdb->postmeta} pm
-     WHERE pm.meta_key = '_artist_members'
-     AND pm.meta_value NOT IN (SELECT ID FROM {$wpdb->users})"
+FROM {$wpdb->postmeta} pm
+     WHERE pm.meta_key = '_artist_member_ids'
+      AND pm.meta_value NOT IN (SELECT ID FROM {$wpdb->users})"
+
 );
 ```
 
@@ -285,9 +267,9 @@ function is_user_member_of_artist($user_id, $artist_id) {
 
 **Check**:
 1. Verify artist plugin is active: `post_type_exists('artist_profile')`
-2. Check user has 'manage_options' capability
-3. Verify nonce in AJAX request is valid
-4. Check JavaScript console for AJAX errors
+2. Check user has `manage_options` capability
+3. Verify REST nonce is sent as `X-WP-Nonce`
+4. Check JavaScript console/network tab for REST errors
 
 ### Members Not Appearing After Link
 
