@@ -1,122 +1,122 @@
 /**
- * Taxonomy Sync Tool
- * Handles AJAX for synchronizing taxonomies across multisite network
+ * Taxonomy Sync Tool (REST)
  */
-(function($) {
+
+(function () {
     'use strict';
 
-    $(document).ready(function() {
-        initSyncButton();
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var button = document.getElementById('ec-sync-taxonomies');
+        var report = document.getElementById('ec-taxonomy-sync-report');
 
-    /**
-     * Sync button handler
-     */
-    function initSyncButton() {
-        $('#ec-sync-taxonomies').on('click', function() {
-            var $button = $(this);
-            var $report = $('#ec-taxonomy-sync-report');
+        if (!button) {
+            return;
+        }
 
-            // Collect selected target sites
-            var targetSites = [];
-            $('input[name="target_sites[]"]:checked').each(function() {
-                targetSites.push($(this).val());
+        button.addEventListener('click', async function () {
+            var targetSites = Array.from(document.querySelectorAll('input[name="target_sites[]"]:checked')).map(function (input) {
+                return input.value;
             });
 
-            // Collect selected taxonomies
-            var taxonomies = [];
-            $('input[name="taxonomies[]"]:checked').each(function() {
-                taxonomies.push($(this).val());
+            var taxonomies = Array.from(document.querySelectorAll('input[name="taxonomies[]"]:checked')).map(function (input) {
+                return input.value;
             });
 
-            // Validate selections
             if (targetSites.length === 0) {
-                alert('Please select at least one target site');
+                window.alert('Please select at least one target site');
                 return;
             }
 
             if (taxonomies.length === 0) {
-                alert('Please select at least one taxonomy');
+                window.alert('Please select at least one taxonomy');
                 return;
             }
 
-            // Confirm action
-            if (!confirm('Sync ' + taxonomies.length + ' taxonomies to ' + targetSites.length + ' sites?')) {
+            if (!window.confirm('Sync ' + taxonomies.length + ' taxonomies to ' + targetSites.length + ' sites?')) {
                 return;
             }
 
-            $button.prop('disabled', true).text('Syncing...');
-            $report.hide();
+            button.disabled = true;
+            button.textContent = 'Syncing...';
 
-            $.ajax({
-                url: ecAdminTools.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'ec_sync_taxonomies',
-                    target_sites: targetSites,
-                    taxonomies: taxonomies,
-                    nonce: ecAdminTools.nonces.taxonomySync
-                },
-                success: function(response) {
-                    if (response.success) {
-                        displayReport(response.data, $report);
-                    } else {
-                        alert('Error: ' + response.data);
-                    }
-                },
-                error: function() {
-                    alert('AJAX error occurred');
-                },
-                complete: function() {
-                    $button.prop('disabled', false).text('Sync Taxonomies');
+            if (report) {
+                report.style.display = 'none';
+            }
+
+            try {
+                var response = await fetch(ecAdminTools.restUrl + 'admin/taxonomies/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': ecAdminTools.nonce
+                    },
+                    body: JSON.stringify({
+                        target_sites: targetSites,
+                        taxonomies: taxonomies
+                    })
+                });
+
+                var data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data && data.message ? data.message : 'Request failed');
                 }
-            });
-        });
-    }
 
-    /**
-     * Display structured sync report
-     */
-    function displayReport(data, $report) {
-        var html = '<div class="notice notice-success" style="padding: 1em;">';
-        html += '<h3 style="margin-top: 0;">Sync Complete!</h3>';
-        html += '<p><strong>Total Terms Processed:</strong> ' + data.total_terms_processed + '</p>';
-        html += '<p><strong>Total Terms Created:</strong> ' + data.total_terms_created + '</p>';
-        html += '<p><strong>Total Terms Skipped:</strong> ' + data.total_terms_skipped + '</p>';
+                renderReport(data, report);
+            } catch (error) {
+                window.alert('Error: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Sync Taxonomies';
+            }
+        });
+    });
+
+    function renderReport(data, report) {
+        if (!report) {
+            return;
+        }
+
+        var html = '<div class="notice notice-success" style="padding:1em;">';
+        html += '<h3 style="margin-top:0;">Sync Complete!</h3>';
+        html += '<p><strong>Total Terms Processed:</strong> ' + (data.total_terms_processed || 0) + '</p>';
+        html += '<p><strong>Total Terms Created:</strong> ' + (data.total_terms_created || 0) + '</p>';
+        html += '<p><strong>Total Terms Skipped:</strong> ' + (data.total_terms_skipped || 0) + '</p>';
 
         if (data.breakdown) {
             html += '<h4>Breakdown by Taxonomy:</h4>';
-            html += '<table class="widefat fixed striped" style="margin-top: 1em;">';
-            html += '<thead><tr><th>Taxonomy</th><th>Source Terms</th><th>Blog ID</th><th>Created</th><th>Skipped</th><th>Failed</th></tr></thead>';
+            html += '<table class="widefat fixed striped" style="margin-top:1em;">';
+            html += '<thead><tr><th>Taxonomy</th><th>Source Terms</th><th>Target</th><th>Created</th><th>Skipped</th><th>Failed</th></tr></thead>';
             html += '<tbody>';
 
-            for (var taxonomy in data.breakdown) {
+            Object.keys(data.breakdown).forEach(function (taxonomy) {
                 var taxData = data.breakdown[taxonomy];
-                var firstRow = true;
+                var sites = taxData.sites || {};
+                var siteKeys = Object.keys(sites);
 
-                for (var blogId in taxData.sites) {
-                    var siteData = taxData.sites[blogId];
+                siteKeys.forEach(function (siteSlug, index) {
+                    var row = sites[siteSlug];
                     html += '<tr>';
 
-                    if (firstRow) {
-                        html += '<td rowspan="' + Object.keys(taxData.sites).length + '"><strong>' + taxonomy + '</strong></td>';
-                        html += '<td rowspan="' + Object.keys(taxData.sites).length + '">' + taxData.source_terms + '</td>';
-                        firstRow = false;
+                    if (index === 0) {
+                        html += '<td rowspan="' + siteKeys.length + '"><strong>' + taxonomy + '</strong></td>';
+                        html += '<td rowspan="' + siteKeys.length + '">' + taxData.source_terms + '</td>';
                     }
 
-                    html += '<td>' + blogId + '</td>';
-                    html += '<td>' + siteData.created + '</td>';
-                    html += '<td>' + siteData.skipped + '</td>';
-                    html += '<td>' + (siteData.failed || 0) + '</td>';
+                    html += '<td>' + siteSlug + '</td>';
+                    html += '<td>' + (row.created || 0) + '</td>';
+                    html += '<td>' + (row.skipped || 0) + '</td>';
+                    html += '<td>' + (row.failed || 0) + '</td>';
                     html += '</tr>';
-                }
-            }
+                });
+            });
 
             html += '</tbody></table>';
         }
 
         html += '</div>';
-        $report.html(html).show();
-    }
 
-})(jQuery);
+        report.innerHTML = html;
+        report.style.display = 'block';
+    }
+})();
