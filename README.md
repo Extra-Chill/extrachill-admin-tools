@@ -9,7 +9,6 @@ Centralized administrative tools for the Extra Chill platform WordPress multisit
 ### Tabbed Interface Tools
 - **Tag Migration** - Bulk migrate tags to festival, artist, or venue taxonomies with search and pagination
 - **404 Error Logger** - Log 404 errors with daily email reports, automatic cleanup, and custom database table
-- **Festival Wire Migration** - One-time Festival Wire content migration (conditional: requires extrachill-news-wire plugin)
 - **Artist Platform Migration** - Direct site-to-site migration from community.extrachill.com to artist.extrachill.com (site-specific: artist.extrachill.com only)
 - **Artist-User Relationships** - Manage relationships between users and artist profiles with orphan detection (conditional: requires extrachill-artist-platform)
 - **Team Member Management** - Sync team members from main site with manual override support (conditional: requires extrachill-multisite)
@@ -22,7 +21,7 @@ Centralized administrative tools for the Extra Chill platform WordPress multisit
 ### Conditional Loading
 Tools load based on context:
 - **Site-specific**: Artist Platform Migration (artist.extrachill.com only)
-- **Plugin dependencies**: Artist-User Relationships (requires extrachill-artist-platform), Team Member Management (requires extrachill-multisite), Festival Wire Migration (requires extrachill-news-wire)
+- **Plugin dependencies**: Artist-User Relationships (requires extrachill-artist-platform), Team Member Management (requires extrachill-multisite)
 
 ### Security
 - Administrator-only access with `manage_options` capability checks
