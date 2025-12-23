@@ -1,9 +1,12 @@
 /**
- * Festival Wire Migration Tool (REST)
+ * Festival Wire Migration Tool
  */
-
 (function () {
     'use strict';
+
+    var isRunning = false;
+    var totalMigrated = 0;
+    var totalSkipped = 0;
 
     function $(id) {
         return document.getElementById(id);
@@ -11,102 +14,171 @@
 
     function showOutput(html, type) {
         var output = $('ec-fwm-output');
-        if (!output) {
-            return;
-        }
-
-        var noticeClass = type === 'error' ? 'notice-error' : 'notice-success';
-        output.innerHTML = '<div class="notice ' + noticeClass + '" style="padding:1em;"><pre style="white-space:pre-wrap;margin:0;">' + html + '</pre></div>';
+        if (!output) return;
+        var cls = type === 'error' ? 'notice-error' : 'notice-success';
+        output.innerHTML = '<div class="notice ' + cls + '" style="padding:1em;"><pre style="white-space:pre-wrap;margin:0;">' + html + '</pre></div>';
         output.style.display = 'block';
     }
 
-    async function call(endpoint, payload) {
-        var response = await fetch(ecAdminTools.restUrl + endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-WP-Nonce': ecAdminTools.nonce
-            },
-            body: JSON.stringify(payload || {})
-        });
+    function showProgress(text, percent) {
+        var container = $('ec-fwm-progress');
+        var textEl = $('ec-fwm-progress-text');
+        var bar = $('ec-fwm-progress-bar');
+        if (!container || !textEl || !bar) return;
+        container.style.display = 'block';
+        textEl.textContent = text;
+        bar.style.width = Math.min(100, Math.max(0, percent)) + '%';
+    }
 
-        var data = await response.json();
-        if (!response.ok) {
-            throw new Error(data && data.message ? data.message : 'Request failed');
+    function hideProgress() {
+        var container = $('ec-fwm-progress');
+        if (container) container.style.display = 'none';
+    }
+
+    function setButtons(enabled) {
+        var btns = ['ec-fwm-preflight', 'ec-fwm-migrate', 'ec-fwm-reset'];
+        btns.forEach(function (id) {
+            var btn = $(id);
+            if (btn) btn.disabled = !enabled;
+        });
+    }
+
+    async function ajax(action, data) {
+        var formData = new FormData();
+        formData.append('action', action);
+        formData.append('nonce', ecFwm.nonce);
+        if (data) {
+            Object.keys(data).forEach(function (key) {
+                formData.append(key, data[key]);
+            });
         }
 
-        return data;
+        var response = await fetch(ecFwm.ajaxUrl, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+
+        var result = await response.json();
+        if (!result.success) {
+            throw new Error(result.data || 'Request failed');
+        }
+        return result.data;
+    }
+
+    async function runMigration() {
+        if (isRunning) return;
+        isRunning = true;
+        setButtons(false);
+        totalMigrated = 0;
+        totalSkipped = 0;
+
+        // Get initial counts
+        var preflight;
+        try {
+            preflight = await ajax('ec_fwm_preflight');
+        } catch (e) {
+            showOutput('Preflight failed: ' + e.message, 'error');
+            isRunning = false;
+            setButtons(true);
+            hideProgress();
+            return;
+        }
+
+        var sourceCount = preflight.source_count;
+        var startTarget = preflight.target_count;
+
+        if (sourceCount === 0) {
+            showOutput('No source posts found.', 'error');
+            isRunning = false;
+            setButtons(true);
+            hideProgress();
+            return;
+        }
+
+        showProgress('Starting migration... 0 / ' + sourceCount, 0);
+
+        var lastId = 0;
+        var done = false;
+
+        while (!done) {
+            try {
+                var result = await ajax('ec_fwm_migrate_batch', { last_id: lastId });
+                done = result.done;
+                lastId = result.last_id;
+                totalMigrated += result.migrated;
+                totalSkipped += result.skipped;
+
+                var processed = startTarget + totalMigrated + totalSkipped;
+                var percent = Math.round((processed / sourceCount) * 100);
+                showProgress(
+                    'Migrated: ' + totalMigrated + ' | Skipped: ' + totalSkipped + ' | Progress: ' + processed + ' / ' + sourceCount,
+                    percent
+                );
+            } catch (e) {
+                showOutput('Migration error: ' + e.message, 'error');
+                break;
+            }
+        }
+
+        isRunning = false;
+        setButtons(true);
+
+        if (done) {
+            showOutput('Migration complete!\n\nMigrated: ' + totalMigrated + '\nSkipped (already existed): ' + totalSkipped);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
         var preflightBtn = $('ec-fwm-preflight');
         var migrateBtn = $('ec-fwm-migrate');
-        var validateBtn = $('ec-fwm-validate');
-        var deleteBtn = $('ec-fwm-delete');
-        var batchSizeInput = $('ec-fwm-batch-size');
+        var resetBtn = $('ec-fwm-reset');
 
-        if (!preflightBtn || !migrateBtn || !validateBtn || !deleteBtn || !batchSizeInput) {
-            return;
-        }
-
-        function batchSize() {
-            var size = parseInt(batchSizeInput.value, 10);
-            if (Number.isNaN(size) || size < 1) {
-                return 25;
-            }
-            return Math.min(size, 200);
-        }
+        if (!preflightBtn || !migrateBtn || !resetBtn) return;
 
         preflightBtn.addEventListener('click', async function () {
+            setButtons(false);
+            hideProgress();
             try {
-                var data = await call('admin/festival-wire/preflight', {});
-                showOutput(JSON.stringify(data, null, 2));
+                var data = await ajax('ec_fwm_preflight');
+                showOutput(
+                    'Source posts (Blog 1): ' + data.source_count +
+                    '\nTarget posts (Blog 11): ' + data.target_count +
+                    '\nRemaining to migrate: ' + data.remaining
+                );
             } catch (e) {
                 showOutput(e.message, 'error');
             }
+            setButtons(true);
         });
 
-        migrateBtn.addEventListener('click', async function () {
-            if (!window.confirm('Migrate next batch (including attachments)?')) {
+        migrateBtn.addEventListener('click', function () {
+            if (!window.confirm('Start migration? This will copy all festival_wire posts from Blog 1 to Blog 11.')) {
+                return;
+            }
+            hideProgress();
+            runMigration();
+        });
+
+        resetBtn.addEventListener('click', async function () {
+            if (!window.confirm('DELETE ALL festival_wire posts and their media on Blog 11?')) {
+                return;
+            }
+            if (!window.confirm('Are you absolutely sure? This cannot be undone.')) {
                 return;
             }
 
-            migrateBtn.disabled = true;
+            setButtons(false);
+            hideProgress();
 
             try {
-                var data = await call('admin/festival-wire/migrate', { batch_size: batchSize() });
-                showOutput(JSON.stringify(data, null, 2));
-            } catch (e) {
-                showOutput(e.message, 'error');
-            } finally {
-                migrateBtn.disabled = false;
-            }
-        });
-
-        validateBtn.addEventListener('click', async function () {
-            try {
-                var data = await call('admin/festival-wire/validate', {});
-                showOutput(JSON.stringify(data, null, 2));
+                var data = await ajax('ec_fwm_reset');
+                showOutput('Reset complete!\n\nDeleted posts: ' + data.deleted_posts + '\nDeleted attachments: ' + data.deleted_attachments);
             } catch (e) {
                 showOutput(e.message, 'error');
             }
-        });
 
-        deleteBtn.addEventListener('click', async function () {
-            if (!window.confirm('Delete SOURCE posts + attachments for next batch?')) {
-                return;
-            }
-
-            deleteBtn.disabled = true;
-
-            try {
-                var data = await call('admin/festival-wire/delete', { batch_size: batchSize() });
-                showOutput(JSON.stringify(data, null, 2));
-            } catch (e) {
-                showOutput(e.message, 'error');
-            } finally {
-                deleteBtn.disabled = false;
-            }
+            setButtons(true);
         });
     });
 })();

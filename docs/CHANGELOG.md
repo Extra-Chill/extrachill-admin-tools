@@ -1,11 +1,23 @@
-# Changelog
+ # Changelog
 
-All notable changes to this project will be documented in this file.
+ All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0/),
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.6] - 2025-12-22
+ ## [1.2.7] - 2025-12-22
+
+ ### Changed
+ - **Festival Wire Migration Tool**: Refactored from REST API to self-contained AJAX implementation for improved reliability and reduced external dependencies
+   - Changed from manual batch processing to continuous automated migration with real-time progress tracking
+   - Added visual progress bar with live statistics (migrated/skipped counts)
+   - Changed reset operation to delete all target posts on wire.extrachill.com instead of source posts
+   - Added duplicate detection to skip posts with matching titles on target
+   - Added featured image copying from source to target posts during migration
+   - Improved error handling with proper blog switching and try/finally blocks
+   - Fixed batch size to constant value (50) for consistent processing
+
+ ## [1.2.6] - 2025-12-22
 
 ### Added
 - **Festival Wire Migration Tool**: New conditional admin tool for migrating festival_wire posts from extrachill.com to wire.extrachill.com. Includes preflight checks, batch migration with attachments, validation, and source cleanup operations. Requires extrachill-news-wire plugin.
