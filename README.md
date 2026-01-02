@@ -4,24 +4,24 @@ Centralized administrative tools for the Extra Chill platform WordPress multisit
 
 ## Features
 
-**Production Status**: Active plugin with 9 tools (7 tabbed interface tools + 2 admin notice tools)
+**Production Status**: Active plugin with 11 tabbed tools
 
 ### Tabbed Interface Tools
 - **Tag Migration** - Bulk migrate tags to festival, artist, or venue taxonomies with search and pagination
 - **404 Error Logger** - Log 404 errors with daily email reports, automatic cleanup, and custom database table
-- **Artist Platform Migration** - Direct site-to-site migration from community.extrachill.com to artist.extrachill.com (site-specific: artist.extrachill.com only)
+- **Team Member Management** - Sync team members from main site with manual override support (conditional: requires extrachill-users)
 - **Artist-User Relationships** - Manage relationships between users and artist profiles with orphan detection (conditional: requires extrachill-artist-platform)
-- **Team Member Management** - Sync team members from main site with manual override support (conditional: requires extrachill-multisite)
-- **User Links Migration** - Convert legacy static social link fields to dynamic array system (note: file exists but not currently loaded)
-
-### Admin Notice Tools
-- **Session Token Cleanup** - Admin notice with AJAX cleanup for legacy session token tables
-- **Image Votes Cleanup** - Admin notice for removing legacy image_votes database table after block migration
+- **Artist Ownership Repair** - Repair ownership relationships between artists and users
+- **Artist Forum Repair** - Repair and synchronize artist forum relationships
+- **QR Code Generator** - Generate QR codes via REST API with real-time preview and download
+- **Ad-Free License Management** - Grant, revoke, and manage ad-free licenses for platform users
+- **Taxonomy Sync** - Synchronize taxonomies from main site to other network sites
+- **Forum Topic Migration** - Migrate forum topics between forums
+- **Artist Access Requests** - Manage artist access approval and rejection requests
 
 ### Conditional Loading
 Tools load based on context:
-- **Site-specific**: Artist Platform Migration (artist.extrachill.com only)
-- **Plugin dependencies**: Artist-User Relationships (requires extrachill-artist-platform), Team Member Management (requires extrachill-multisite)
+- **Plugin dependencies**: Artist-User Relationships (requires extrachill-artist-platform), Team Member Management (requires extrachill-users)
 
 ### Security
 - Administrator-only access with `manage_options` capability checks

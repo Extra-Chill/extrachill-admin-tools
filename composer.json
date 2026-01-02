@@ -20,11 +20,6 @@
         "phpunit/phpunit": "^9.0",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
     },
-    "autoload": {
-        "psr-4": {
-            "ExtraChill\\AdminTools\\": "src/"
-        }
-    },
     "scripts": {
         "lint:php": "vendor/bin/phpcs --standard=WordPress --extensions=php .",
         "lint:fix": "vendor/bin/phpcbf --standard=WordPress --extensions=php .",
