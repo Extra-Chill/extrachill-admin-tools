@@ -11,10 +11,10 @@ if (!defined('ABSPATH')) {
 }
 
 add_filter('extrachill_admin_tools', function($tools) {
-    $current_blog_id = get_current_blog_id();
-    $artist_blog_id   = function_exists('ec_get_blog_id') ? ec_get_blog_id('artist') : null;
+    $target_blog_id = isset( $_GET['target_blog_id'] ) ? intval( $_GET['target_blog_id'] ) : get_current_blog_id();
+    $artist_blog_id = function_exists('ec_get_blog_id') ? ec_get_blog_id('artist') : null;
 
-    if ($artist_blog_id && $current_blog_id === $artist_blog_id) {
+    if ($artist_blog_id && $target_blog_id === $artist_blog_id) {
         if (!function_exists('bbp_insert_forum')) {
             return $tools;
         }

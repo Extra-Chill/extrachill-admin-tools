@@ -14,7 +14,7 @@ Centralized administrative tools for the Extra Chill platform WordPress multisit
 - **Artist Ownership Repair** - Repair ownership relationships between artists and users
 - **Artist Forum Repair** - Repair and synchronize artist forum relationships
 - **QR Code Generator** - Generate QR codes via REST API with real-time preview and download
-- **Ad-Free License Management** - Grant, revoke, and manage ad-free licenses for platform users
+- **Lifetime Extra Chill Membership Management** - Grant, revoke, and manage Lifetime Extra Chill Memberships (ad-free) for platform users
 - **Taxonomy Sync** - Synchronize taxonomies from main site to other network sites
 - **Forum Topic Migration** - Migrate forum topics between forums
 - **Artist Access Requests** - Manage artist access approval and rejection requests

@@ -122,21 +122,19 @@ register_rest_route('extrachill/v1', '/tools/qr-code', array(
 
 Already documented in [404-error-logger.md](tools/404-error-logger.md)
 
-### Ad-Free License Table (if custom)
+### Lifetime Extra Chill Membership Table (if custom)
 
-If licenses stored in custom table rather than post meta:
+If memberships stored in custom table rather than post meta:
 
 ```sql
-CREATE TABLE wp_ad_free_licenses (
+CREATE TABLE wp_extrachill_lifetime_memberships (
     id mediumint(9) NOT NULL AUTO_INCREMENT,
     user_id bigint(20) NOT NULL,
-    license_key varchar(100) NOT NULL UNIQUE,
+    order_id bigint(20) DEFAULT NULL,
     purchase_date datetime DEFAULT NULL,
-    expiration_date datetime DEFAULT NULL,
     status varchar(20) DEFAULT 'active',
     PRIMARY KEY (id),
     INDEX user_id_idx (user_id),
-    INDEX license_key_idx (license_key),
     INDEX status_idx (status),
     FOREIGN KEY (user_id) REFERENCES wp_users(ID) ON DELETE CASCADE
 )
@@ -163,31 +161,26 @@ CREATE TABLE wp_ec_subscriptions (
 
 ### Helper Functions for Querying
 
-**Get license status for user**:
+**Get membership status for user**:
 ```php
-function ec_user_has_ad_free_license($user_id) {
-    $license = get_user_meta($user_id, '_ad_free_license', true);
+function is_user_lifetime_member($user_id) {
+    $membership = get_user_meta($user_id, 'extrachill_lifetime_membership', true);
     
-    if (!$license) {
+    if (!$membership) {
         return false;
-    }
-    
-    if (isset($license['expiration']) && strtotime($license['expiration']) < time()) {
-        return false; // Expired
     }
     
     return true;
 }
 ```
 
-**Get all active licenses**:
+**Get all active memberships**:
 ```php
 global $wpdb;
-$licenses = $wpdb->get_results(
-    "SELECT user_id, license_key, expiration_date
-     FROM {$wpdb->prefix}ad_free_licenses
-     WHERE status = 'active'
-     AND (expiration_date IS NULL OR expiration_date > NOW())"
+$memberships = $wpdb->get_results(
+    "SELECT user_id, purchase_date
+     FROM {$wpdb->prefix}extrachill_lifetime_memberships
+     WHERE status = 'active'"
 );
 ```
 

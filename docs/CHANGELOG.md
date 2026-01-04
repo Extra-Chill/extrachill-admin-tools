@@ -5,7 +5,22 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
- ## [1.2.9] - 2025-12-23
+ ## [1.3.0] - 2026-01-03
+
+### Added
+- **Network Admin Integration**: Migrated the primary interface from Tools menu to the Network Admin for centralized management across the multisite network.
+- **Site Selector Context**: Added a site selector to the admin interface, allowing tools to be executed within the context of any site in the network using `switch_to_blog()`.
+- **Lifetime Membership Management**: New tool for managing Lifetime Extra Chill Memberships (rebranding and upgrading the Ad-Free License system).
+
+### Changed
+- **Permissions**: Updated all admin access requirements from `manage_options` to `manage_network_options`.
+- **Tool Updates**: Updated Taxonomy Sync and Artist platform repair tools to support the new site-switching architecture.
+- **REST API Enhancements**: Updated taxonomy sync and membership management endpoints to support target blog ID parameters.
+
+### Fixed
+- **Admin Assets**: Corrected asset loading hooks for compatibility with the network admin dashboard.
+
+## [1.2.9] - 2025-12-23
 
  ### Removed
  - **Festival Wire Migration Tool**: Removed after migration completion
@@ -149,7 +164,7 @@
 
 ### Changed
 - **REST API Migration**: Migrated all AJAX operations to REST API endpoints for improved architecture and consistency.
-  - Ad-Free License Management: Now uses `/admin/ad-free-license/grant` and `/admin/ad-free-license/{userId}` endpoints
+  - Lifetime Extra Chill Membership Management: Now uses `/admin/lifetime-membership/grant` and `/admin/lifetime-membership/{userId}` endpoints
   - Artist-User Relationships: Now uses `/users/{userId}/artists/{artistId}`, `/users/search`, and `/users/{userId}/artists` endpoints
   - Team Member Management: Now uses `/admin/team-members/sync` and `/admin/team-members/{userId}` endpoints
 - **JavaScript Modernization**: Converted all AJAX calls from jQuery to modern fetch API with improved error handling
@@ -201,7 +216,7 @@
 ### Added
 - **QR Code Generator Tool**: Universal QR code generator for any URL with high-resolution print-ready output using Endroid QR Code library
 - **Taxonomy Sync Tool**: Synchronize taxonomies from main site to network sites with selective targeting and metadata preservation
-- **Ad-Free License Management Tool**: Grant, revoke, and manage ad-free licenses with user search and AJAX-powered interface
+- **Lifetime Extra Chill Membership Management Tool**: Grant, revoke, and manage Lifetime Extra Chill Memberships with user search and AJAX-powered interface (ad-free)
 - **Artist-User Relationships Tool**: Comprehensive management interface for artist-user relationships with orphan detection and cleanup
 - **Team Member Management Tool**: Sync team member status from main site with manual override support
 - **Artist Ownership Repair Tool**: Repair and maintain artist ownership relationships

@@ -1,11 +1,11 @@
 /**
- * Ad-Free License Management Styles
+ * Lifetime Membership Management Styles
  *
  * @package ExtraChillAdminTools
  * @since 1.0.0
  */
 
-.ec-ad-free-wrap {
+.ec-lifetime-membership-wrap {
     max-width: 1200px;
 }
 
@@ -60,15 +60,15 @@
     display: block;
 }
 
-/* License Holders Section */
-.ec-license-holders-section {
+/* Membership Holders Section */
+.ec-membership-holders-section {
     background: #fff;
     border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: 4px;
 }
 
-.ec-license-holders-section h3 {
+.ec-membership-holders-section h3 {
 	margin-top: 0;
 	font-size: var(--font-size-body);
 }

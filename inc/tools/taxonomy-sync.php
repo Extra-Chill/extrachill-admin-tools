@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 add_action( 'admin_enqueue_scripts', function ( $hook ) {
-    if ( 'tools_page_extrachill-admin-tools' !== $hook ) {
+    if ( 'extra-chill-multisite_page_extrachill-admin-tools' !== $hook ) {
         return;
     }
     wp_enqueue_script(
@@ -30,7 +30,7 @@ add_filter( 'extrachill_admin_tools', function ( $tools ) {
     return $tools;
 }, 30 );
 function ec_taxonomy_sync_admin_page() {
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! current_user_can( 'manage_network_options' ) ) {
         wp_die( esc_html__( 'Unauthorized access', 'extrachill-admin-tools' ) );
     }
     $taxonomies = array(

@@ -44,7 +44,7 @@
             }
 
             try {
-                var response = await fetch(ecAdminTools.restUrl + 'admin/taxonomies/sync', {
+                var response = await fetch(ecAdminTools.restUrl + 'admin/taxonomies/sync?target_blog_id=' + ecAdminTools.targetBlogId, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 /**
- * Ad-Free License Management JavaScript
+ * Lifetime Membership Management JavaScript
  *
- * Uses REST API endpoints for license management.
+ * Uses REST API endpoints for membership management.
  *
  * @package ExtraChillAdminTools
  * @since 1.0.0
@@ -12,8 +12,8 @@
 
     $(document).ready(function() {
 
-        // Grant License
-        $('#ec-grant-license-btn').on('click', function() {
+        // Grant Membership
+        $('#ec-grant-membership-btn').on('click', function() {
             var userIdentifier = $('#ec-user-search').val().trim();
             var $btn = $(this);
             var $result = $('#ec-grant-result');
@@ -25,18 +25,18 @@
                 return;
             }
 
-            if (!confirm('Grant ad-free license to "' + userIdentifier + '"?\n\nThis user will have ad-free access across the entire platform.')) {
+            if (!confirm('Grant lifetime membership to "' + userIdentifier + '"?\n\nThis user will have ad-free access across the entire platform.')) {
                 return;
             }
 
             $btn.prop('disabled', true).text('Granting...');
             $result.hide();
 
-            fetch(ecAdFree.rest_url + 'admin/ad-free-license/grant', {
+            fetch(ecLifetimeMembership.rest_url + 'admin/lifetime-membership/grant', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': ecAdFree.nonce
+                    'X-WP-Nonce': ecLifetimeMembership.nonce
                 },
                 body: JSON.stringify({
                     user_identifier: userIdentifier
@@ -69,27 +69,27 @@
                     .show();
             })
             .finally(function() {
-                $btn.prop('disabled', false).text('Grant License');
+                $btn.prop('disabled', false).text('Grant Membership');
             });
         });
 
-        // Revoke License
+        // Revoke Membership
         $('.ec-revoke-btn').on('click', function() {
             var userId = $(this).data('user-id');
             var username = $(this).data('username');
             var $btn = $(this);
             var $row = $btn.closest('tr');
 
-            if (!confirm('Revoke ad-free license for "' + username + '"?\n\nThis action will immediately remove ad-free access from this user.\n\nThis cannot be undone.')) {
+            if (!confirm('Revoke lifetime membership for "' + username + '"?\n\nThis action will immediately remove ad-free access from this user.\n\nThis cannot be undone.')) {
                 return;
             }
 
             $btn.prop('disabled', true).text('Revoking...');
 
-            fetch(ecAdFree.rest_url + 'admin/ad-free-license/' + userId, {
+            fetch(ecLifetimeMembership.rest_url + 'admin/lifetime-membership/' + userId, {
                 method: 'DELETE',
                 headers: {
-                    'X-WP-Nonce': ecAdFree.nonce
+                    'X-WP-Nonce': ecLifetimeMembership.nonce
                 }
             })
             .then(function(response) {
@@ -112,12 +112,12 @@
                     }, 300);
                 } else {
                     alert('Error: ' + result.data.message);
-                    $btn.prop('disabled', false).text('Revoke License');
+                    $btn.prop('disabled', false).text('Revoke Membership');
                 }
             })
             .catch(function() {
                 alert('Network error - please try again');
-                $btn.prop('disabled', false).text('Revoke License');
+                $btn.prop('disabled', false).text('Revoke Membership');
             });
         });
 
@@ -125,7 +125,7 @@
         $('#ec-user-search').on('keypress', function(e) {
             if (e.which === 13) {
                 e.preventDefault();
-                $('#ec-grant-license-btn').click();
+                $('#ec-grant-membership-btn').click();
             }
         });
 

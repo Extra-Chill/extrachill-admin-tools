@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'admin_enqueue_scripts', function ( $hook ) {
-	if ( $hook !== 'tools_page_extrachill-admin-tools' ) {
+	if ( $hook !== 'extra-chill-multisite_page_extrachill-admin-tools' ) {
 		return;
 	}
 
@@ -67,7 +67,7 @@ function ec_get_pending_artist_access_count() {
  * Render the Artist Access Requests admin page
  */
 function ec_artist_access_requests_page() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'manage_network_options' ) ) {
 		wp_die( 'Unauthorized access' );
 	}
 

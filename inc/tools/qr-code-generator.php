@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'admin_enqueue_scripts', function ( $hook ) {
-    if ( 'tools_page_extrachill-admin-tools' !== $hook ) {
+    if ( 'extra-chill-multisite_page_extrachill-admin-tools' !== $hook ) {
         return;
     }
 

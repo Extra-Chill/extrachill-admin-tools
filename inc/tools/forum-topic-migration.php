@@ -35,7 +35,7 @@ add_filter('extrachill_admin_tools', function ($tools) {
  * Enqueue migration tool assets
  */
 add_action('admin_enqueue_scripts', function ($hook) {
-    if ($hook !== 'tools_page_extrachill-admin-tools') {
+    if ($hook !== 'extra-chill-multisite_page_extrachill-admin-tools') {
         return;
     }
 
