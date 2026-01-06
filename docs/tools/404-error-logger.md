@@ -2,7 +2,9 @@
 
 ## Overview
 
-The 404 Error Logger tool tracks and reports broken links (404 errors) across the entire WordPress multisite network. The system logs all 404 errors to a custom database table and generates daily email reports summarizing the broken links discovered.
+The 404 Error Logger tool tracks and reports broken links (404 errors) across the entire WordPress multisite network. 
+
+**Version 2.0.0 Update**: The administrative view for the 404 logger has been migrated to a React component (`src/tools/ErrorLogger.jsx`). It provides real-time statistics and summary views of current logged errors.
 
 ## 404_log Custom Table Schema
 

@@ -1,120 +1,39 @@
 # Admin Tools - API Patterns & Database Schemas
 
-## Common AJAX Patterns
+## React-Based Architecture (Version 2.0.0+)
 
-All admin tools using AJAX follow consistent security and data handling patterns.
+Since version 2.0.0, the admin tools have migrated to a modern React-based architecture. 
 
-### AJAX Request Security
+### Centralized API Client
 
-**Nonce Verification** (required on all AJAX requests):
-```javascript
-// Frontend: Send nonce in request
-fetch(ecAdminTools.ajaxUrl, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({
-        'action': 'tool_action_name',
-        'nonce': ecAdminTools.nonce,
-        'data': JSON.stringify(toolData)
-    })
-});
-```
+All tool components utilize a shared `apiClient` for interacting with the `extrachill-api` REST endpoints. This ensures consistent authentication, error handling, and URL resolution across the interface.
 
-**Backend: Verify nonce before processing**:
-```php
-add_action('wp_ajax_tool_action_name', function() {
-    check_ajax_referer('tool_nonce', 'nonce');
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized');
-    }
-    // Process request
-});
-```
+### Shared UI Components
 
-### Standard Response Format
+- **DataTable**: Standardized list view with pagination and sorting.
+- **UserSearch**: Modal-based user lookup with real-time results.
+- **Modal**: Consistent dialog interface for actions and confirmations.
+- **Pagination**: Integrated with REST response headers (`X-WP-Total`, `X-WP-TotalPages`).
 
-**Success Response**:
-```json
-{
-    "success": true,
-    "message": "Operation completed successfully",
-    "data": {
-        "count": 42,
-        "affected_items": ["item1", "item2"]
-    }
-}
-```
+## REST API Patterns (extrachill-api)
 
-**Error Response**:
-```json
-{
-    "success": false,
-    "message": "Detailed error message for admin",
-    "code": "error_identifier"
-}
-```
+Administrative tools consume endpoints under the `extrachill/v1/admin/` and `extrachill/v1/users/` namespaces.
 
-### Input Sanitization Pattern
+### Standard Request Security
+All requests include the `X-WP-Nonce` header for authentication and verification.
 
-```php
-// Always sanitize and unslash user input FIRST
-$search_term = sanitize_text_field(wp_unslash($_POST['search'] ?? ''));
-$page = absint($_POST['page'] ?? 1);
-$taxonomy = sanitize_key($_POST['taxonomy'] ?? 'post_tag');
-$ids = array_map('absint', $_POST['ids'] ?? []);
+### List Endpoint Pattern
+Admin listing endpoints support:
+- `page`: Current page (1-based)
+- `per_page`: Number of items per page (default 10)
+- `search`: Keyword search across relevant fields
 
-// Use sanitized values in operations
-$results = get_terms(array(
-    'taxonomy' => $taxonomy,
-    'search' => $search_term,
-    'paged' => $page
-));
-```
+### Response Format
+Responses use standard REST formats, with pagination metadata provided in response headers.
 
-## REST API Patterns
+## Legacy AJAX Patterns (Deprecated)
 
-The QR Code Generator uses REST API instead of admin-ajax for modern endpoint handling.
-
-### REST Endpoint Registration
-
-**Endpoint**: `POST /wp-json/extrachill/v1/tools/qr-code`
-
-**Handler** (in extrachill-api plugin):
-```php
-register_rest_route('extrachill/v1', '/tools/qr-code', array(
-    'methods' => 'POST',
-    'callback' => 'ec_qr_code_generate',
-    'permission_callback' => function() {
-        return current_user_can('manage_options');
-    }
-));
-```
-
-### REST Request/Response
-
-**Request Body**:
-```json
-{
-    "url": "https://extrachill.link/artist-name"
-}
-```
-
-**Response** (Success):
-```json
-{
-    "success": true,
-    "qr_code": "data:image/png;base64,iVBORw0KGgo...",
-    "size": "1000x1000"
-}
-```
-
-**Response** (Error):
-```json
-{
-    "success": false,
-    "message": "Invalid URL format"
-}
-```
+Many tools have been migrated from the legacy AJAX patterns below to the React/REST architecture.
 
 ## Database Schemas
 

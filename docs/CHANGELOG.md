@@ -5,6 +5,28 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+ ## [2.0.0] - 2026-01-05
+
+### Added
+- **React-Based Tooling System**: Completely overhauled the administrative interface to a modern React-based architecture.
+  - Centralized `AdminTools` app component with client-side routing.
+  - Reusable UI component library (`DataTable`, `UserSearch`, `Modal`, `Pagination`).
+  - Standardized REST API client for all tool interactions.
+- **Modernized Tools**:
+  - `ArtistUserRelationships.jsx`: New React interface for managing user-artist links with real-time searching.
+  - `LifetimeMemberships.jsx`: Enhanced membership management with better user feedback.
+  - `TeamMemberManagement.jsx`: Refactored team sync with granular control.
+  - `ArtistAccessRequests.jsx`: Streamlined approval/rejection workflow.
+  - `TagMigration.jsx`: Improved bulk migration interface with progress tracking.
+  - `ErrorLogger.jsx`: New visualization for 404 error tracking.
+- **Enhanced Permissions**: All tools now consistently verify `manage_network_options` and utilize REST-based authentication.
+
+### Changed
+- **Major Version Bump**: Shift to version 2.0.0 reflecting the complete architectural migration from PHP/AJAX to React/REST.
+- **Asset Loading**: Consolidated legacy individual scripts and styles into a single compiled React bundle.
+- **Network Admin Integration**: Centralized the administrative interface within the Network Admin dashboard.
+- **Decommissioned legacy PHP/AJAX handlers**: Replaced with unified REST endpoints and React components. Removed legacy `assets/` and `inc/tools/` files.
+
  ## [1.3.0] - 2026-01-03
 
 ### Added

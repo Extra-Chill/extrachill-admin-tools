@@ -36,25 +36,23 @@ Artist Profile (wp_posts)
 
 ## Admin Interface
 
-### Three Management Views
+### React-Based Management
 
-Navigate to **Tools → Admin Tools → Artist-User Relationships** to access:
+Navigate to **Tools → Admin Tools → Artist-User Relationships** to access the React-based management interface. This tool utilizes the shared `UserSearch` component for intuitive user selection and the `DataTable` component for relationship listing.
 
 #### 1. Artists View (Default)
 Lists all artist profiles with:
 - Artist name and post ID
 - Number of linked team members
-- Link/unlink interface
 - Search by artist name
-- Actions: Add member, view members, manage access
+- Actions: Add member (using `UserSearch` modal), view members, manage access
 
 #### 2. Users View
 Lists all users with:
 - User name and ID
 - Artist profiles linked to user
-- Member status (team member, owner, etc.)
 - Search by username/email
-- Actions: Link to artist, unlink from artist, manage roles
+- Actions: Link to artist, unlink from artist
 
 #### 3. Orphans View
 Identifies data integrity issues:
@@ -63,11 +61,9 @@ Identifies data integrity issues:
 - **Orphaned Users**: User accounts referenced in artist meta but deleted
 - Provides cleanup/repair actions for each issue type
 
-## REST API Calls
+## REST API Integration
 
-The admin UI uses REST routes registered in the network-activated `extrachill-api` plugin.
-
-> The JavaScript for this tool calls these endpoints via `ecAdminTools.restUrl` and sends the nonce as `X-WP-Nonce`.
+The admin UI uses REST routes registered in the network-activated `extrachill-api` plugin. The React frontend interacts with these endpoints via a centralized `apiClient`.
 
 ### Add User to Artist
 

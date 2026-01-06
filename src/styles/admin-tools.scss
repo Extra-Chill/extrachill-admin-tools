@@ -1,0 +1,412 @@
+/**
+ * Admin Tools Styles
+ *
+ * Styles for the network admin tools React app.
+ */
+
+.ec-admin-tools {
+	max-width: 1200px;
+
+	// Header
+	&__header {
+		margin-bottom: 20px;
+		padding: 20px;
+		background: #fff;
+		border: 1px solid #ccd0d4;
+		border-radius: 4px;
+
+		h1 {
+			margin: 0 0 15px;
+		}
+	}
+
+	&__site-selector {
+		display: flex;
+		align-items: center;
+		gap: 15px;
+		flex-wrap: wrap;
+
+		.components-select-control {
+			min-width: 300px;
+		}
+	}
+
+	&__site-hint {
+		color: #646970;
+		font-size: 13px;
+	}
+
+	// Notices
+	&__notices {
+		margin-bottom: 20px;
+	}
+
+	// Tabs
+	&__tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-bottom: 20px;
+		padding-bottom: 15px;
+		border-bottom: 1px solid #ccd0d4;
+	}
+
+	&__tab {
+		&.is-primary {
+			background: #2271b1;
+		}
+	}
+
+	// Welcome/Empty states
+	&__welcome,
+	&__empty {
+		padding: 40px;
+		text-align: center;
+		background: #fff;
+		border: 1px solid #ccd0d4;
+		border-radius: 4px;
+
+		p {
+			margin: 0;
+			color: #646970;
+			font-size: 14px;
+		}
+	}
+
+	// Content area
+	&__content {
+		background: #fff;
+		border: 1px solid #ccd0d4;
+		border-radius: 4px;
+		padding: 20px;
+	}
+}
+
+// Tool components
+.ec-tool {
+	&__description {
+		margin-bottom: 20px;
+		padding: 15px;
+		background: #f0f0f1;
+		border-left: 4px solid #2271b1;
+
+		p {
+			margin: 0;
+		}
+	}
+
+	&__section {
+		margin-bottom: 25px;
+		padding-bottom: 20px;
+		border-bottom: 1px solid #eee;
+
+		&:last-child {
+			margin-bottom: 0;
+			padding-bottom: 0;
+			border-bottom: none;
+		}
+
+		h3 {
+			margin-top: 0;
+		}
+	}
+
+	&__form {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+		max-width: 600px;
+
+		.components-button {
+			align-self: flex-start;
+		}
+	}
+
+	&__actions {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-top: 15px;
+		flex-wrap: wrap;
+	}
+
+	&__filters {
+		display: flex;
+		gap: 15px;
+		margin-bottom: 20px;
+		flex-wrap: wrap;
+		align-items: flex-end;
+	}
+
+	&__bulk-actions {
+		display: flex;
+		gap: 15px;
+		margin-bottom: 20px;
+		align-items: flex-end;
+		flex-wrap: wrap;
+	}
+
+	&__result {
+		margin-top: 25px;
+		padding: 20px;
+		background: #f7f7f7;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+
+		h3 {
+			margin-top: 0;
+		}
+	}
+
+	&__report {
+		margin-top: 20px;
+		padding: 15px;
+		background: #f0f0f1;
+		border-left: 4px solid #46b450;
+
+		h3,
+		h4 {
+			margin-top: 0;
+		}
+
+		pre {
+			background: #fff;
+			padding: 10px;
+			overflow: auto;
+			max-height: 300px;
+		}
+
+		ul {
+			margin: 0;
+			padding-left: 20px;
+		}
+	}
+
+	&__stats {
+		margin-top: 15px;
+		padding: 15px;
+		background: #fff;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+
+		p {
+			margin: 0;
+		}
+	}
+
+	&__hint {
+		color: #646970;
+		font-size: 13px;
+	}
+
+	&__qr-preview {
+		margin: 15px 0;
+
+		img {
+			border: 1px solid #ddd;
+			border-radius: 4px;
+		}
+	}
+
+	&__row-actions {
+		display: flex;
+		gap: 8px;
+	}
+
+	&__success {
+		padding: 15px;
+		background: #d4edda;
+		border-left: 4px solid #28a745;
+		color: #155724;
+	}
+
+	&__tab-content {
+		margin-top: 20px;
+	}
+}
+
+// Data Table
+.ec-data-table {
+	&__loading,
+	&__empty {
+		padding: 40px;
+		text-align: center;
+		background: #f9f9f9;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+
+		.components-spinner {
+			margin-right: 10px;
+		}
+	}
+
+	&__check-column {
+		width: 40px;
+		padding: 8px !important;
+	}
+
+	// Override WP table styles
+	&.wp-list-table {
+		margin-top: 15px;
+
+		th,
+		td {
+			vertical-align: middle;
+		}
+	}
+}
+
+// Pagination
+.ec-pagination {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 15px;
+	padding-top: 15px;
+	border-top: 1px solid #eee;
+
+	&__info {
+		color: #646970;
+		font-size: 13px;
+	}
+
+	&__buttons {
+		display: flex;
+		gap: 8px;
+	}
+}
+
+// Search Box
+.ec-search-box {
+	display: flex;
+	gap: 8px;
+	align-items: flex-end;
+	margin-bottom: 15px;
+
+	.components-text-control {
+		min-width: 300px;
+	}
+}
+
+// Badges
+.ec-badge {
+	display: inline-block;
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	font-weight: 500;
+
+	&--yes {
+		background: #d4edda;
+		color: #155724;
+	}
+
+	&--no {
+		background: #f8d7da;
+		color: #721c24;
+	}
+
+	&--info {
+		background: #cce5ff;
+		color: #004085;
+	}
+}
+
+// Member lists
+.ec-member-count {
+	font-weight: 600;
+}
+
+.ec-member-list {
+	margin: 8px 0 0;
+	padding: 0;
+	list-style: none;
+
+	li {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 5px 0;
+		border-bottom: 1px solid #eee;
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+}
+
+// Source indicator
+.ec-source {
+	color: #646970;
+	font-size: 12px;
+}
+
+// User Search Component
+.ec-user-search-component {
+	.ec-user-search-label {
+		font-weight: 500;
+		margin-bottom: 8px;
+	}
+
+	.ec-user-search-input-group {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 15px;
+
+		.components-base-control {
+			flex: 1;
+		}
+	}
+
+	.ec-user-search-results {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		max-height: 300px;
+		overflow-y: auto;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+
+		li {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 10px 15px;
+			border-bottom: 1px solid #eee;
+
+			&:last-child {
+				border-bottom: none;
+			}
+
+			&:hover {
+				background: #f7f7f7;
+			}
+		}
+	}
+
+	.ec-user-search-result-info {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.ec-user-search-avatar {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: #eee;
+	}
+
+	.ec-user-search-no-results {
+		color: #646970;
+		font-style: italic;
+		margin-top: 10px;
+	}
+}
+
+// Modal overrides
+.ec-modal {
+	.components-modal__content {
+		min-width: 500px;
+	}
+}

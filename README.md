@@ -9,12 +9,12 @@ Centralized administrative tools for the Extra Chill platform WordPress multisit
 ### Tabbed Interface Tools
 - **Tag Migration** - Bulk migrate tags to festival, artist, or venue taxonomies with search and pagination
 - **404 Error Logger** - Log 404 errors with daily email reports, automatic cleanup, and custom database table
-- **Team Member Management** - Sync team members from main site with manual override support (conditional: requires extrachill-users)
-- **Artist-User Relationships** - Manage relationships between users and artist profiles with orphan detection (conditional: requires extrachill-artist-platform)
+- **Team Member Management** - Sync team members from main site with manual override support (React-based)
+- **Artist-User Relationships** - Manage relationships between users and artist profiles with orphan detection (React-based)
 - **Artist Ownership Repair** - Repair ownership relationships between artists and users
 - **Artist Forum Repair** - Repair and synchronize artist forum relationships
 - **QR Code Generator** - Generate QR codes via REST API with real-time preview and download
-- **Lifetime Extra Chill Membership Management** - Grant, revoke, and manage Lifetime Extra Chill Memberships (ad-free) for platform users
+- **Lifetime Extra Chill Membership Management** - Grant, revoke, and manage Lifetime Extra Chill Memberships (ad-free) for platform users (React-based)
 - **Taxonomy Sync** - Synchronize taxonomies from main site to other network sites
 - **Forum Topic Migration** - Migrate forum topics between forums
 - **Artist Access Requests** - Manage artist access approval and rejection requests
@@ -24,36 +24,44 @@ Tools load based on context:
 - **Plugin dependencies**: Artist-User Relationships (requires extrachill-artist-platform), Team Member Management (requires extrachill-users)
 
 ### Security
-- Administrator-only access with `manage_options` capability checks
-- WordPress nonce verification for all forms and AJAX requests
+- Administrator-only access with `manage_network_options` capability checks
+- Standardized REST API authentication for all tools
 - Input sanitization and output escaping throughout
 - Prepared database statements for all queries
 - Double confirmation prompts for destructive operations
 
 ## Installation
 
-**Requirements**: WordPress 5.0+, PHP 7.4+, Administrator access
+**Requirements**: WordPress 6.0+, PHP 7.4+, Administrator access
 
 1. Upload plugin files to `/wp-content/plugins/extrachill-admin-tools/`
-2. Activate plugin in WordPress admin
-3. Access via `Tools > Admin Tools`
+2. Network activate plugin in WordPress multisite admin
+3. Access via `Network Admin > Tools > Admin Tools`
 
 ## Development
 
+The admin interface is a React single-page application. Development requires Node.js and npm.
+
 ```bash
-composer install               # Install dependencies
+composer install               # Install PHP dependencies
+npm install                   # Install JS dependencies
+npm run start                 # Start dev server
+npm run build                 # Create production JS bundle
 composer run lint:php         # PHP linting
-composer run lint:fix          # Fix coding standards
 composer test                  # Run tests
-./build.sh                     # Create production build
+./build.sh                     # Create production ZIP build
 ```
 
 ## Comprehensive Documentation
 
 For detailed tool documentation, database schemas, and API specifications, see:
-- `/docs/tools/` - Individual tool documentation with examples and use cases
-- `/docs/api-patterns.md` - Common AJAX and REST API patterns used throughout
-- `/docs/CHANGELOG.md` - Version history and updates
+- [Tag Migration](docs/tools/tag-migration.md)
+- [Taxonomy Sync](docs/tools/taxonomy-sync.md)
+- [QR Code Generator](docs/tools/qr-code-generator.md)
+- [404 Error Logger](docs/tools/404-error-logger.md)
+- [Artist-User Relationships](docs/tools/artist-user-relationships.md)
+- [API Patterns & Architecture](docs/api-patterns.md)
+- [Changelog](docs/CHANGELOG.md)
 
 ## License
 

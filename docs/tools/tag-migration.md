@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Tag Migration tool provides bulk conversion of existing post tags into one of three specialized taxonomies: festival, artist, or venue taxonomies. This tool is essential when restructuring content organization or migrating from a flat tagging system to a more granular taxonomy system.
+The Tag Migration tool provides bulk conversion of existing post tags into one of three specialized taxonomies: festival, artist, or venue taxonomies. 
+
+**Version 2.0.0 Update**: This tool has been migrated to a React-based interface (`src/tools/TagMigration.jsx`). It now features an improved search experience and real-time migration status updates using the REST API.
 
 ## Purpose & Scope
 

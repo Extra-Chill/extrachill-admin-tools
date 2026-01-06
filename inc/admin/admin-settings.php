@@ -1,6 +1,8 @@
 <?php
 /**
- * Admin interface setup for Extra Chill Admin Tools.
+ * Admin Tools - Network Admin Page
+ *
+ * Renders mount point for React app and localizes configuration.
  *
  * @package ExtraChillAdminTools
  */
@@ -13,9 +15,7 @@ add_action( 'network_admin_menu', 'extrachill_admin_tools_menu' );
 add_action( 'admin_enqueue_scripts', 'extrachill_admin_tools_enqueue_assets' );
 
 /**
- * Register Admin Tools menu item.
- *
- * @return void
+ * Register Admin Tools menu item under Extra Chill Multisite.
  */
 function extrachill_admin_tools_menu() {
 	add_submenu_page(
@@ -29,106 +29,142 @@ function extrachill_admin_tools_menu() {
 }
 
 /**
- * Enqueue assets for the Admin Tools page.
+ * Enqueue React app assets for the Admin Tools page.
  *
  * @param string $hook Current admin page hook.
- *
- * @return void
  */
 function extrachill_admin_tools_enqueue_assets( $hook ) {
 	if ( 'extra-chill-multisite_page_extrachill-admin-tools' !== $hook ) {
 		return;
 	}
 
-	wp_enqueue_style(
-		'extrachill-admin-tools',
-		EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/css/admin-tools.css',
-		array(),
-		filemtime( EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/css/admin-tools.css' )
-	);
+	$asset_file = EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'build/admin-tools.asset.php';
+
+	if ( ! file_exists( $asset_file ) ) {
+		return;
+	}
+
+	$asset = include $asset_file;
 
 	wp_enqueue_script(
 		'extrachill-admin-tools',
-		EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'assets/js/admin-tabs.js',
-		array( 'jquery' ),
-		filemtime( EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'assets/js/admin-tabs.js' ),
+		EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'build/admin-tools.js',
+		$asset['dependencies'],
+		$asset['version'],
 		true
 	);
 
+	wp_enqueue_style(
+		'extrachill-admin-tools',
+		EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL . 'build/admin-tools.css',
+		array( 'wp-components' ),
+		$asset['version']
+	);
+
+	$sites = array_map(
+		function ( $site ) {
+			return array(
+				'id'     => (int) $site->blog_id,
+				'domain' => $site->domain,
+				'path'   => $site->path,
+				'name'   => get_blog_details( $site->blog_id )->blogname,
+			);
+		},
+		get_sites( array( 'number' => 100 ) )
+	);
+
+	$tools_config = extrachill_admin_tools_get_tools_config();
+
 	wp_localize_script(
 		'extrachill-admin-tools',
-		'ecAdminTools',
+		'ecAdminToolsConfig',
 		array(
-			'restUrl'      => rest_url( 'extrachill/v1/' ),
-			'nonce'        => wp_create_nonce( 'wp_rest' ),
-			'targetBlogId' => isset( $_GET['target_blog_id'] ) ? intval( $_GET['target_blog_id'] ) : get_current_blog_id(),
+			'restUrl'       => rest_url( 'extrachill/v1/' ),
+			'nonce'         => wp_create_nonce( 'wp_rest' ),
+			'sites'         => $sites,
+			'tools'         => $tools_config,
+			'defaultSiteId' => get_main_site_id(),
 		)
 	);
 }
 
 /**
- * Render the Admin Tools page with tabbed tools.
- *
- * @return void
+ * Render the Admin Tools page with React mount point.
  */
 function extrachill_admin_tools_page() {
 	if ( ! current_user_can( 'manage_network_options' ) ) {
 		wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'extrachill-admin-tools' ) );
 	}
 
-	$target_blog_id = isset( $_GET['target_blog_id'] ) ? intval( $_GET['target_blog_id'] ) : get_current_blog_id();
-	$tools          = apply_filters( 'extrachill_admin_tools', array() );
-	$sites          = get_sites( array( 'number' => 100 ) );
-
-	switch_to_blog( $target_blog_id );
-
 	echo '<div class="wrap">';
-	echo '<h1>' . esc_html__( 'Extra Chill Admin Tools', 'extrachill-admin-tools' ) . '</h1>';
-
-	// Site Selector.
-	echo '<div class="ec-admin-tools-header" style="margin: 20px 0; padding: 15px; background: #fff; border: 1px solid #ccd0d4; border-radius: 4px;">';
-	echo '<form method="get" action="">';
-	echo '<input type="hidden" name="page" value="extrachill-admin-tools">';
-	echo '<label for="target_blog_id" style="font-weight: 600; margin-right: 10px;">' . esc_html__( 'Select Site to Act Upon:', 'extrachill-admin-tools' ) . '</label>';
-	echo '<select name="target_blog_id" id="target_blog_id" onchange="this.form.submit()">';
-	foreach ( $sites as $site ) {
-		$selected = ( (int) $site->blog_id === $target_blog_id ) ? 'selected' : '';
-		echo '<option value="' . esc_attr( $site->blog_id ) . '" ' . $selected . '>' . esc_html( $site->domain . $site->path ) . ' (ID: ' . $site->blog_id . ')</option>';
-	}
-	echo '</select>';
-	echo ' <span class="description" style="margin-left: 10px;">' . esc_html__( 'Tools below will operate in the context of the selected site.', 'extrachill-admin-tools' ) . '</span>';
-	echo '</form>';
+	echo '<div id="extrachill-admin-tools-root"></div>';
 	echo '</div>';
+}
 
-	if ( empty( $tools ) ) {
-		echo '<p>' . esc_html__( 'No admin tools are currently registered.', 'extrachill-admin-tools' ) . '</p>';
-	} else {
-		echo '<h2 class="nav-tab-wrapper">';
-		foreach ( $tools as $tool ) {
-			if ( isset( $tool['title'], $tool['id'], $tool['callback'] ) && function_exists( $tool['callback'] ) ) {
-				$tab_id   = esc_attr( $tool['id'] );
-				$tab_name = esc_html( $tool['title'] );
-				echo '<a href="#' . $tab_id . '" class="nav-tab" data-tab="' . $tab_id . '">' . $tab_name . '</a>';
-			}
-		}
-		echo '</h2>';
+/**
+ * Returns tool definitions with site availability.
+ *
+ * @return array Tool configuration array.
+ */
+function extrachill_admin_tools_get_tools_config() {
+	$artist_blog_id    = function_exists( 'ec_get_blog_id' ) ? ec_get_blog_id( 'artist' ) : null;
+	$community_blog_id = function_exists( 'ec_get_blog_id' ) ? ec_get_blog_id( 'community' ) : null;
+	$main_blog_id      = get_main_site_id();
 
-		foreach ( $tools as $tool ) {
-			if ( isset( $tool['title'], $tool['id'], $tool['callback'] ) && function_exists( $tool['callback'] ) ) {
-				$tab_id = esc_attr( $tool['id'] );
-				echo '<div class="tool-tab-content" data-tab="' . $tab_id . '">';
-				echo '<div class="ec-tool-card">';
-				if ( isset( $tool['description'] ) ) {
-					echo '<p class="ec-tool-description">' . esc_html( $tool['description'] ) . '</p>';
-				}
-				call_user_func( $tool['callback'] );
-				echo '</div>';
-				echo '</div>';
-			}
-		}
-	}
-
-	echo '</div>';
-
-	restore_current_blog();
+	return array(
+		array(
+			'id'          => 'error-logger',
+			'title'       => '404 Error Logger',
+			'description' => 'Toggle 404 logging and view today\'s error count.',
+			'sites'       => 'all',
+		),
+		array(
+			'id'          => 'artist-access-requests',
+			'title'       => 'Artist Access Requests',
+			'description' => 'Review and approve artist platform access requests.',
+			'sites'       => 'all',
+		),
+		array(
+			'id'          => 'artist-user-relationships',
+			'title'       => 'Artist-User Relationships',
+			'description' => 'Manage relationships between users and artist profiles.',
+			'sites'       => $artist_blog_id ? array( $artist_blog_id ) : array(),
+		),
+		array(
+			'id'          => 'forum-topic-migration',
+			'title'       => 'Forum Topic Migration',
+			'description' => 'Bulk move topics between forums.',
+			'sites'       => $community_blog_id ? array( $community_blog_id ) : array(),
+		),
+		array(
+			'id'          => 'qr-code-generator',
+			'title'       => 'QR Code Generator',
+			'description' => 'Generate print-ready QR codes for any URL.',
+			'sites'       => 'all',
+		),
+		array(
+			'id'          => 'tag-migration',
+			'title'       => 'Tag Migration',
+			'description' => 'Migrate tags to custom taxonomies.',
+			'sites'       => array( $main_blog_id ),
+		),
+		array(
+			'id'          => 'taxonomy-sync',
+			'title'       => 'Taxonomy Sync',
+			'description' => 'Sync taxonomies from main site to other network sites.',
+			'sites'       => array( $main_blog_id ),
+		),
+		array(
+			'id'          => 'lifetime-memberships',
+			'title'       => 'Lifetime Memberships',
+			'description' => 'Manage lifetime memberships and grant ad-free access.',
+			'sites'       => 'all',
+		),
+		array(
+			'id'          => 'team-member-management',
+			'title'       => 'Team Member Management',
+			'description' => 'Sync team members and manage overrides.',
+			'sites'       => 'all',
+		),
+	);
 }
