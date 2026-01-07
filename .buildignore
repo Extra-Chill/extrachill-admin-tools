@@ -6,7 +6,6 @@ docs/
 tests/
 
 # Build Files
-build/
 *.zip
 
 # Lock Files

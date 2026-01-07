@@ -12,9 +12,7 @@ import {
 	syncTeamMembers,
 	updateTeamMemberOverride,
 } from '../api/client';
-import DataTable from '../components/shared/DataTable';
-import SearchBox from '../components/shared/SearchBox';
-import Pagination from '../components/shared/Pagination';
+import { DataTable, SearchBox, Pagination } from '@extrachill/components';
 
 export default function TeamMemberManagement() {
 	const { addNotice } = useAdminTools();

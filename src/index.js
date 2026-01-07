@@ -7,6 +7,7 @@
 import { createRoot } from '@wordpress/element';
 import { AdminToolsProvider } from './context/AdminToolsContext';
 import App from './App';
+import '@extrachill/components/styles/components.scss';
 import './styles/admin-tools.scss';
 
 document.addEventListener( 'DOMContentLoaded', () => {

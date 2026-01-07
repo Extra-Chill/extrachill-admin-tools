@@ -5,7 +5,15 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
- ## [2.0.0] - 2026-01-05
+ ## [2.0.1] - 2026-01-07
+
+### Changed
+- **Shared UI Components**: Switched tool tables/pagination/search/modal UI to `@extrachill/components` (replacing local `src/components/shared/*` imports).
+- **User Search Feedback**: Updated `UserSearch` to only show "No users found" after an actual search attempt (tracks `hasSearched` state).
+- **Artist-User Relationships UI**: Clear loaded relationship data when switching between views to avoid stale results.
+- **Build Packaging**: Updated `build.sh` symlink target and adjusted `.buildignore` to allow `/build` output directory in the repo.
+
+## [2.0.0] - 2026-01-05
 
 ### Added
 - **React-Based Tooling System**: Completely overhauled the administrative interface to a modern React-based architecture.
@@ -37,7 +45,7 @@
 ### Changed
 - **Permissions**: Updated all admin access requirements from `manage_options` to `manage_network_options`.
 - **Tool Updates**: Updated Taxonomy Sync and Artist platform repair tools to support the new site-switching architecture.
-- **REST API Enhancements**: Updated taxonomy sync and membership management endpoints to support target blog ID parameters.
+- **REST API Enhancements**: Updated taxonomy sync and membership management endpoints to support target site selection parameters.
 
 ### Fixed
 - **Admin Assets**: Corrected asset loading hooks for compatibility with the network admin dashboard.

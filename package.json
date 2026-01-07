@@ -1,6 +1,6 @@
 {
   "name": "extrachill-admin-tools",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Network admin tools for Extra Chill Platform",
   "scripts": {
     "build": "wp-scripts build",
@@ -18,7 +18,8 @@
     "@wordpress/api-fetch": "^7.0.0",
     "@wordpress/components": "^28.0.0",
     "@wordpress/element": "^6.0.0",
-    "@wordpress/i18n": "^5.0.0"
+    "@wordpress/i18n": "^5.0.0",
+    "@extrachill/components": "file:../../extrachill-components"
   },
   "private": true
 }

@@ -12,7 +12,7 @@ import {
 	approveArtistAccess,
 	rejectArtistAccess,
 } from '../api/client';
-import DataTable from '../components/shared/DataTable';
+import { DataTable } from '@extrachill/components';
 
 export default function ArtistAccessRequests() {
 	const { addNotice } = useAdminTools();

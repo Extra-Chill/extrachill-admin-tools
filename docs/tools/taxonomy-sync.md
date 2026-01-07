@@ -24,7 +24,7 @@ The React component interacts with the `extrachill-api` plugin via the following
 
 ### Parameters
 - `taxonomies` (array): List of taxonomy slugs to sync.
-- `site_ids` (array): List of target blog IDs.
+- `target_sites` (array): List of target site slugs (resolved to blog IDs via `ec_get_blog_id()` in the API handler).
 
 ## Database Operations
 

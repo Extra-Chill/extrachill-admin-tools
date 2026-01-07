@@ -15,9 +15,7 @@ import {
 	getOrphanedRelationships,
 	cleanupOrphan,
 } from '../api/client';
-import DataTable from '../components/shared/DataTable';
-import SearchBox from '../components/shared/SearchBox';
-import Modal from '../components/shared/Modal';
+import { DataTable, SearchBox, Modal } from '@extrachill/components';
 import UserSearch from '../components/shared/UserSearch';
 
 export default function ArtistUserRelationships() {
@@ -230,6 +228,7 @@ export default function ArtistUserRelationships() {
 				onSelect={ ( tabName ) => {
 					setActiveView( tabName );
 					setSearch( '' );
+					setData( [] );
 				} }
 			>
 				{ ( tab ) => (

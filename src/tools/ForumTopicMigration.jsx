@@ -8,9 +8,7 @@ import { useState, useEffect, useCallback } from '@wordpress/element';
 import { Button, SelectControl, Spinner } from '@wordpress/components';
 import { useAdminTools } from '../context/AdminToolsContext';
 import { getForums, getForumTopics, moveForumTopics } from '../api/client';
-import DataTable from '../components/shared/DataTable';
-import SearchBox from '../components/shared/SearchBox';
-import Pagination from '../components/shared/Pagination';
+import { DataTable, SearchBox, Pagination } from '@extrachill/components';
 
 export default function ForumTopicMigration() {
 	const { addNotice } = useAdminTools();

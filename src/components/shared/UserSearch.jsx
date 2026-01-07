@@ -16,20 +16,24 @@ export default function UserSearch( {
 	const [ term, setTerm ] = useState( '' );
 	const [ results, setResults ] = useState( [] );
 	const [ isSearching, setIsSearching ] = useState( false );
+	const [ hasSearched, setHasSearched ] = useState( false );
 
 	const handleSearch = async () => {
 		if ( ! term || term.length < 2 ) {
 			return;
 		}
 		setIsSearching( true );
+		setHasSearched( false );
 		try {
 			const response = await searchUsers( term );
 			// Handle both { users: [] } and raw [] responses if API varies
 			const users = Array.isArray( response ) ? response : response.users || [];
 			setResults( users );
+			setHasSearched( true );
 		} catch ( error ) {
 			// Errors should be handled by the parent context/notices
 			console.error( 'User search failed:', error );
+			setHasSearched( true );
 		} finally {
 			setIsSearching( false );
 		}
@@ -39,6 +43,7 @@ export default function UserSearch( {
 		onSelect( user );
 		setTerm( '' );
 		setResults( [] );
+		setHasSearched( false );
 	};
 
 	const handleKeyDown = ( e ) => {
@@ -95,7 +100,7 @@ export default function UserSearch( {
 				</ul>
 			) }
 
-			{ ! isSearching && term.length >= 2 && results.length === 0 && (
+			{ ! isSearching && hasSearched && results.length === 0 && (
 				<p className="ec-user-search-no-results">No users found.</p>
 			) }
 		</div>
