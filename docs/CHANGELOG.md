@@ -5,7 +5,12 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
- ## [2.0.2] - 2026-01-07
+ ## [2.0.3] - 2026-01-07
+
+### Removed
+- **Analytics Events Table Migration**: Removed the one-time `inc/migrations/analytics-events-table.php` migration and stopped loading it from `extrachill-admin-tools.php`.
+
+## [2.0.2] - 2026-01-07
 
 ### Added
 - **Analytics Events Table Migration**: Added a one-time network migration (`inc/migrations/analytics-events-table.php`) to copy rows from `wp_ec_events` to `wp_extrachill_analytics_events`, then drop the legacy `wp_ec_events` table and mark completion via the `ec_analytics_events_migrated` site option.

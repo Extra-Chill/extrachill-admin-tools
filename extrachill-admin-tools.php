@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Extra Chill Admin Tools
  * Description: Centralized network admin tools for the Extra Chill platform ecosystem
- * Version: 2.0.2
+ * Version: 2.0.3
  * Author: Chris Huber
  * Author URI: https://chubes.net
  * License: GPL v2 or later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EXTRACHILL_ADMIN_TOOLS_VERSION', '2.0.2' );
+define( 'EXTRACHILL_ADMIN_TOOLS_VERSION', '2.0.3' );
 define( 'EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -71,6 +71,3 @@ require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/admin/admin-settings.php';
 
 // 404 Error Logger backend hooks (logging and cron only, UI is React).
 require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/tools/404-error-logger.php';
-
-// One-time migration: analytics events table rename (remove after production deployment).
-require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/migrations/analytics-events-table.php';
