@@ -30,17 +30,15 @@ Tools load based on context:
 - Prepared database statements for all queries
 - Double confirmation prompts for destructive operations
 
-## Installation
+## Deployment
 
-**Requirements**: WordPress 6.0+, PHP 7.4+, Administrator access
+This plugin is deployed as part of the Extra Chill Platform and is network-activated.
 
-1. Upload plugin files to `/wp-content/plugins/extrachill-admin-tools/`
-2. Network activate plugin in WordPress multisite admin
-3. Access via `Network Admin > Tools > Admin Tools`
+Deployments and remote operations run through **Homeboy** (`homeboy/` in this repo).
 
 ## Development
 
-The admin interface is a React single-page application. Development requires Node.js and npm.
+The admin interface is a React single-page application.
 
 ```bash
 composer install               # Install PHP dependencies
@@ -48,9 +46,11 @@ npm install                   # Install JS dependencies
 npm run start                 # Start dev server
 npm run build                 # Create production JS bundle
 composer run lint:php         # PHP linting
-composer test                  # Run tests
-./build.sh                     # Create production ZIP build
+composer test                 # Run tests
+./build.sh                    # Create production ZIP build
 ```
+
+Production deployments use Homeboy after generating the ZIP artifact.
 
 ## Comprehensive Documentation
 

@@ -13,7 +13,7 @@
 ## [2.0.2] - 2026-01-07
 
 ### Added
-- **Analytics Events Table Migration**: Added a one-time network migration (`inc/migrations/analytics-events-table.php`) to copy rows from `wp_ec_events` to `wp_extrachill_analytics_events`, then drop the legacy `wp_ec_events` table and mark completion via the `ec_analytics_events_migrated` site option.
+- **Analytics Events Table Migration**: Added a one-time network migration (`inc/migrations/analytics-events-table.php`) to copy rows from `wp_ec_events` to `{base_prefix}extrachill_analytics_events`, then drop the legacy `wp_ec_events` table and mark completion via the `ec_analytics_events_migrated` site option.
 
 ### Changed
 - **Plugin Bootstrap**: Loads the analytics events migration on plugin load via `extrachill-admin-tools.php`.

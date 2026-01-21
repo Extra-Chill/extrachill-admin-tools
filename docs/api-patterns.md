@@ -41,78 +41,17 @@ Many tools have been migrated from the legacy AJAX patterns below to the React/R
 
 Already documented in [404-error-logger.md](tools/404-error-logger.md)
 
-### Lifetime Extra Chill Membership Table (if custom)
+### Database scope note
 
-If memberships stored in custom table rather than post meta:
+This document only includes schemas that exist in this plugin/codebase.
 
-```sql
-CREATE TABLE wp_extrachill_lifetime_memberships (
-    id mediumint(9) NOT NULL AUTO_INCREMENT,
-    user_id bigint(20) NOT NULL,
-    order_id bigint(20) DEFAULT NULL,
-    purchase_date datetime DEFAULT NULL,
-    status varchar(20) DEFAULT 'active',
-    PRIMARY KEY (id),
-    INDEX user_id_idx (user_id),
-    INDEX status_idx (status),
-    FOREIGN KEY (user_id) REFERENCES wp_users(ID) ON DELETE CASCADE
-)
-```
+- Network-wide tables use `$wpdb->base_prefix` (shared across all sites).
+- Per-site tables use `$wpdb->prefix` (scoped to a single site).
 
-### Subscriptions Table (if used)
+**Custom tables this plugin creates**:
+- `{base_prefix}404_log` (documented in [404-error-logger.md](tools/404-error-logger.md))
 
-For email subscription tracking:
-
-```sql
-CREATE TABLE wp_ec_subscriptions (
-    id mediumint(9) NOT NULL AUTO_INCREMENT,
-    user_id bigint(20),
-    email varchar(100) NOT NULL,
-    subscription_type varchar(50) NOT NULL,
-    subscribed_date datetime DEFAULT CURRENT_TIMESTAMP,
-    status varchar(20) DEFAULT 'subscribed',
-    PRIMARY KEY (id),
-    INDEX email_idx (email),
-    INDEX status_idx (status),
-    UNIQUE KEY user_subscription (user_id, subscription_type)
-)
-```
-
-### Helper Functions for Querying
-
-**Get membership status for user**:
-```php
-function is_user_lifetime_member($user_id) {
-    $membership = get_user_meta($user_id, 'extrachill_lifetime_membership', true);
-    
-    if (!$membership) {
-        return false;
-    }
-    
-    return true;
-}
-```
-
-**Get all active memberships**:
-```php
-global $wpdb;
-$memberships = $wpdb->get_results(
-    "SELECT user_id, purchase_date
-     FROM {$wpdb->prefix}extrachill_lifetime_memberships
-     WHERE status = 'active'"
-);
-```
-
-**Get subscription emails by type**:
-```php
-global $wpdb;
-$newsletter_emails = $wpdb->get_col(
-    "SELECT email FROM {$wpdb->prefix}ec_subscriptions
-     WHERE subscription_type = 'newsletter'
-     AND status = 'subscribed'
-     ORDER BY subscribed_date DESC"
-);
-```
+Other admin tools (lifetime membership, team members, taxonomy sync, etc.) use WordPress core tables and/or data owned by other plugins. This plugin does not create additional custom tables for those features.
 
 ## Common Database Queries
 

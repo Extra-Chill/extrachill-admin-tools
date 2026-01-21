@@ -92,27 +92,9 @@ Admin interface (`inc/admin/admin-settings.php`) implements tabbed navigation:
 - Automatic first-tab activation on load
 - Each tab renders via registered callback function
 
-### AJAX Patterns
+### Legacy AJAX Patterns (Deprecated)
 
-**Migration Tools AJAX Flow**:
-```php
-// AJAX handler registration
-add_action('wp_ajax_tool_action', 'tool_ajax_handler');
-
-// Security checks
-check_ajax_referer('tool_nonce', 'nonce');
-if (!current_user_can('manage_options')) {
-    wp_send_json_error('Unauthorized');
-}
-
-// Return structured JSON response
-wp_send_json_success(array(
-    'message' => 'Operation complete',
-    'breakdown' => $counts
-));
-```
-
-**Used in**: artist-user-relationships (add/remove), team-member-management (sync/manage), ad-free-license-management (grant/revoke), taxonomy-sync (sync)
+This plugin’s current production implementation uses `extrachill-api` REST endpoints. Older `wp_ajax_*` patterns are deprecated and should not be used for new tooling.
 
 ### REST API Pattern
 
@@ -132,15 +114,15 @@ fetch(ecQrCodeGen.restUrl, {
 
 ### Commands
 ```bash
-composer install && composer run lint:php  # Install deps and lint
-composer run lint:fix                      # Fix coding standards
-composer test                              # Run tests
-./build.sh                                 # Create production ZIP
+composer install                           # Install deps
+homeboy lint extrachill-admin-tools        # Lint code
+homeboy lint extrachill-admin-tools --fix  # Fix coding standards
+homeboy test extrachill-admin-tools        # Run tests
+homeboy build extrachill-admin-tools       # Create production ZIP
 ```
 
 ### Build System
-- **Universal Build Script**: Symlinked to shared build script at `../../.github/build.sh`
-- **Auto-Detection**: Script auto-detects plugin from `Plugin Name:` header
+- **Build System**: Use `homeboy build extrachill-admin-tools` for production builds
 - **Production Build**: Creates `/build/extrachill-admin-tools.zip` file (non-versioned; unzip when directory access is needed)
 - **File Exclusion**: `.buildignore` rsync patterns exclude development files
 - **Composer Integration**: Uses `composer install --no-dev` for production, restores dev dependencies after
@@ -148,11 +130,10 @@ composer test                              # Run tests
 ## Security
 
 - Administrator-only access with `manage_options` capability checks throughout
-- WordPress nonce system for CSRF protection on all forms and AJAX requests
+- WordPress nonce system for CSRF protection on all requests
 - Input sanitization with `sanitize_text_field()`, `absint()`, `esc_url_raw()`
 - Output escaping with `esc_html()`, `esc_attr()`, `esc_url()`
 - Prepared database statements for all dynamic queries
-- AJAX handlers with nonce verification via `check_ajax_referer()` and `wp_verify_nonce()`
 - Double confirmation prompts for destructive operations (migrations, cleanups)
 
 ## Data Relationships
