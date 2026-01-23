@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Extra Chill Admin Tools
  * Description: Centralized network admin tools for the Extra Chill platform ecosystem
- * Version: 2.0.3
+ * Version: 2.0.4
  * Author: Chris Huber
  * Author URI: https://chubes.net
  * License: GPL v2 or later
