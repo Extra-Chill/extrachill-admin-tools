@@ -89,47 +89,54 @@ if ( get_site_option( 'extrachill_404_logger_enabled', 1 ) ) {
 		global $wpdb;
 		$table_name = $wpdb->base_prefix . '404_log';
 
+		// Use WordPress timezone for date comparison (logs stored via current_time('mysql')).
+		$wp_today = current_time( 'Y-m-d' );
+
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$results = $wpdb->get_results(
-			"SELECT
-				main.blog_id,
-				main.url,
-				main.error_count,
-				main.last_occurrence,
-				main.latest_user_agent,
-				main.latest_ip_address,
-				GROUP_CONCAT(
-					CONCAT(
-						CASE WHEN ref_counts.referrer = '' THEN 'direct' ELSE ref_counts.referrer END,
-						' (', ref_counts.cnt, ')'
-					)
-					ORDER BY ref_counts.cnt DESC
-					SEPARATOR ', '
-				) as referrer_summary
-			FROM (
-				SELECT
-					blog_id,
-					url,
-					COUNT(*) as error_count,
-					MAX(time) as last_occurrence,
-					(SELECT user_agent FROM {$table_name} WHERE blog_id = t.blog_id AND url = t.url ORDER BY time DESC LIMIT 1) as latest_user_agent,
-					(SELECT ip_address FROM {$table_name} WHERE blog_id = t.blog_id AND url = t.url ORDER BY time DESC LIMIT 1) as latest_ip_address
-				FROM {$table_name} t
-				WHERE DATE(time) = CURDATE()
-				GROUP BY blog_id, url
-			) main
-			LEFT JOIN (
-				SELECT
-					blog_id,
-					url,
-					referrer,
-					COUNT(*) as cnt
-				FROM {$table_name}
-				WHERE DATE(time) = CURDATE()
-				GROUP BY blog_id, url, referrer
-			) ref_counts ON main.blog_id = ref_counts.blog_id AND main.url = ref_counts.url
-			GROUP BY main.blog_id, main.url, main.error_count, main.last_occurrence, main.latest_user_agent, main.latest_ip_address
-			ORDER BY main.blog_id, main.error_count DESC"
+			$wpdb->prepare(
+				"SELECT
+					main.blog_id,
+					main.url,
+					main.error_count,
+					main.last_occurrence,
+					main.latest_user_agent,
+					main.latest_ip_address,
+					GROUP_CONCAT(
+						CONCAT(
+							CASE WHEN ref_counts.referrer = '' THEN 'direct' ELSE ref_counts.referrer END,
+							' (', ref_counts.cnt, ')'
+						)
+						ORDER BY ref_counts.cnt DESC
+						SEPARATOR ', '
+					) as referrer_summary
+				FROM (
+					SELECT
+						blog_id,
+						url,
+						COUNT(*) as error_count,
+						MAX(time) as last_occurrence,
+						(SELECT user_agent FROM {$table_name} WHERE blog_id = t.blog_id AND url = t.url ORDER BY time DESC LIMIT 1) as latest_user_agent,
+						(SELECT ip_address FROM {$table_name} WHERE blog_id = t.blog_id AND url = t.url ORDER BY time DESC LIMIT 1) as latest_ip_address
+					FROM {$table_name} t
+					WHERE DATE(time) = %s
+					GROUP BY blog_id, url
+				) main
+				LEFT JOIN (
+					SELECT
+						blog_id,
+						url,
+						referrer,
+						COUNT(*) as cnt
+					FROM {$table_name}
+					WHERE DATE(time) = %s
+					GROUP BY blog_id, url, referrer
+				) ref_counts ON main.blog_id = ref_counts.blog_id AND main.url = ref_counts.url
+				GROUP BY main.blog_id, main.url, main.error_count, main.last_occurrence, main.latest_user_agent, main.latest_ip_address
+				ORDER BY main.blog_id, main.error_count DESC",
+				$wp_today,
+				$wp_today
+			)
 		);
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
@@ -174,7 +181,7 @@ if ( get_site_option( 'extrachill_404_logger_enabled', 1 ) ) {
 			$message .= "Site Total: {$site_total} errors\n\n";
 		}
 
-		$admin_email = get_option( 'admin_email' );
+		$admin_email = get_site_option( 'admin_email' );
 		$subject     = 'Daily 404 Error Log - Network Wide';
 
 		wp_mail( $admin_email, $subject, $message );
