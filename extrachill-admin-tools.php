@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EXTRACHILL_ADMIN_TOOLS_VERSION', '2.0.3' );
+define( 'EXTRACHILL_ADMIN_TOOLS_VERSION', '2.0.4' );
 define( 'EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

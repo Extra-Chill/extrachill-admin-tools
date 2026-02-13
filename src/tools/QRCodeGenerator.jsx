@@ -35,12 +35,12 @@ export default function QRCodeGenerator() {
 	};
 
 	const handleDownload = () => {
-		if ( ! qrData?.image ) {
+		if ( ! qrData?.image_url ) {
 			return;
 		}
 
 		const link = document.createElement( 'a' );
-		link.href = qrData.image;
+		link.href = qrData.image_url;
 		link.download = 'qr-code.png';
 		document.body.appendChild( link );
 		link.click();
@@ -78,7 +78,7 @@ export default function QRCodeGenerator() {
 				</Button>
 			</div>
 
-			{ qrData?.image && (
+			{ qrData?.image_url && (
 				<div className="ec-tool__result">
 					<h3>Generated QR Code</h3>
 					<p className="ec-tool__hint">
@@ -86,7 +86,7 @@ export default function QRCodeGenerator() {
 					</p>
 					<div className="ec-tool__qr-preview">
 						<img
-							src={ qrData.image }
+							src={ qrData.image_url }
 							alt="Generated QR Code"
 							style={ { maxWidth: '300px', height: 'auto' } }
 						/>
