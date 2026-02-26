@@ -24,14 +24,7 @@ export { getConfig };
 
 const get = ( path ) => apiFetch( { path, method: 'GET' } );
 const post = ( path, data ) => apiFetch( { path, method: 'POST', data } );
-const put = ( path, data ) => apiFetch( { path, method: 'PUT', data } );
 const del = ( path, data ) => apiFetch( { path, method: 'DELETE', data } );
-
-// 404 Error Logger
-export const get404LoggerSettings = () => get( 'extrachill/v1/admin/404-logger/settings' );
-export const update404LoggerSettings = ( enabled ) =>
-	post( 'extrachill/v1/admin/404-logger/settings', { enabled } );
-export const get404LoggerStats = () => get( 'extrachill/v1/admin/404-logger/stats' );
 
 // Artist Access Requests
 export const getArtistAccessRequests = () => get( 'extrachill/v1/admin/artist-access' );
@@ -53,22 +46,6 @@ export const getOrphanedRelationships = () => get( 'extrachill/v1/admin/artist-r
 export const cleanupOrphan = ( userId, artistId ) =>
 	post( 'extrachill/v1/admin/artist-relationships/cleanup', { user_id: userId, artist_id: artistId } );
 
-// Forum Topic Migration
-export const getForums = () => get( 'extrachill/v1/admin/forum-topics/forums' );
-export const getForumTopics = ( forumId = 0, search = '', page = 1 ) => {
-	const params = new URLSearchParams( {
-		forum_id: forumId,
-		search,
-		page,
-	} );
-	return get( `extrachill/v1/admin/forum-topics?${ params }` );
-};
-export const moveForumTopics = ( topicIds, destinationForumId ) =>
-	post( 'extrachill/v1/admin/forum-topics/move', {
-		topic_ids: topicIds,
-		destination_forum_id: destinationForumId,
-	} );
-
 // QR Code Generator
 export const generateQRCode = ( url ) =>
 	post( 'extrachill/v1/tools/qr-code', { url } );
@@ -82,14 +59,6 @@ export const grantLifetimeMembership = ( userIdentifier ) =>
 	post( 'extrachill/v1/admin/lifetime-membership/grant', { user_identifier: userIdentifier } );
 export const revokeLifetimeMembership = ( userId ) =>
 	del( `extrachill/v1/admin/lifetime-membership/${ userId }` );
-
-// Tag Migration
-export const getTags = ( page = 1, search = '' ) => {
-	const params = new URLSearchParams( { page, search } );
-	return get( `extrachill/v1/admin/tags?${ params }` );
-};
-export const migrateTags = ( tagIds, taxonomy ) =>
-	post( 'extrachill/v1/admin/tags/migrate', { tag_ids: tagIds, taxonomy } );
 
 // Taxonomy Sync
 export const syncTaxonomies = ( taxonomies, targetSites ) =>
@@ -112,9 +81,6 @@ export const searchUsers = ( term ) => {
 
 export default {
 	getConfig,
-	get404LoggerSettings,
-	update404LoggerSettings,
-	get404LoggerStats,
 	getArtistAccessRequests,
 	approveArtistAccess,
 	rejectArtistAccess,
@@ -123,12 +89,7 @@ export default {
 	unlinkUserFromArtist,
 	getOrphanedRelationships,
 	cleanupOrphan,
-	getForums,
-	getForumTopics,
-	moveForumTopics,
 	generateQRCode,
-	getTags,
-	migrateTags,
 	syncTaxonomies,
 	getLifetimeMemberships,
 	grantLifetimeMembership,

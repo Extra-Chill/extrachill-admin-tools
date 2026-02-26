@@ -107,17 +107,10 @@ function extrachill_admin_tools_page() {
  * @return array Tool configuration array.
  */
 function extrachill_admin_tools_get_tools_config() {
-	$artist_blog_id    = function_exists( 'ec_get_blog_id' ) ? ec_get_blog_id( 'artist' ) : null;
-	$community_blog_id = function_exists( 'ec_get_blog_id' ) ? ec_get_blog_id( 'community' ) : null;
-	$main_blog_id      = get_main_site_id();
+	$artist_blog_id = function_exists( 'ec_get_blog_id' ) ? ec_get_blog_id( 'artist' ) : null;
+	$main_blog_id   = get_main_site_id();
 
 	return array(
-		array(
-			'id'          => 'error-logger',
-			'title'       => '404 Error Logger',
-			'description' => 'Toggle 404 logging and view today\'s error count.',
-			'sites'       => 'all',
-		),
 		array(
 			'id'          => 'artist-access-requests',
 			'title'       => 'Artist Access Requests',
@@ -131,22 +124,10 @@ function extrachill_admin_tools_get_tools_config() {
 			'sites'       => $artist_blog_id ? array( $artist_blog_id ) : array(),
 		),
 		array(
-			'id'          => 'forum-topic-migration',
-			'title'       => 'Forum Topic Migration',
-			'description' => 'Bulk move topics between forums.',
-			'sites'       => $community_blog_id ? array( $community_blog_id ) : array(),
-		),
-		array(
 			'id'          => 'qr-code-generator',
 			'title'       => 'QR Code Generator',
 			'description' => 'Generate print-ready QR codes for any URL.',
 			'sites'       => 'all',
-		),
-		array(
-			'id'          => 'tag-migration',
-			'title'       => 'Tag Migration',
-			'description' => 'Migrate tags to custom taxonomies.',
-			'sites'       => array( $main_blog_id ),
 		),
 		array(
 			'id'          => 'taxonomy-sync',
