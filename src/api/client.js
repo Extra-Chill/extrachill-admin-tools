@@ -1,83 +1,63 @@
 /**
  * Admin Tools API Client
  *
- * Shared API functions using @wordpress/api-fetch.
+ * Delegates all calls to @extrachill/api-client via WpApiFetchTransport.
+ * Exports match the original function names so tool components need zero changes.
  */
 
 import apiFetch from '@wordpress/api-fetch';
+import { ExtraChillClient } from '@extrachill/api-client';
+import { WpApiFetchTransport } from '@extrachill/api-client/wordpress';
 
-const getConfig = () => window.ecAdminToolsConfig || {};
+const transport = new WpApiFetchTransport( apiFetch );
+const client = new ExtraChillClient( transport );
 
-// Configure apiFetch middleware to include nonce from config
-apiFetch.use( ( options, next ) => {
-	const config = getConfig();
-	if ( config.nonce && ! options.headers?.[ 'X-WP-Nonce' ] ) {
-		options.headers = {
-			...options.headers,
-			'X-WP-Nonce': config.nonce,
-		};
-	}
-	return next( options );
-} );
-
-export { getConfig };
-
-const get = ( path ) => apiFetch( { path, method: 'GET' } );
-const post = ( path, data ) => apiFetch( { path, method: 'POST', data } );
-const del = ( path, data ) => apiFetch( { path, method: 'DELETE', data } );
+export const getConfig = () => window.ecAdminToolsConfig || {};
 
 // Artist Access Requests
-export const getArtistAccessRequests = () => get( 'extrachill/v1/admin/artist-access' );
+export const getArtistAccessRequests = () => client.admin.listAccessRequests();
 export const approveArtistAccess = ( userId, type ) =>
-	post( `extrachill/v1/admin/artist-access/${ userId }/approve`, { type } );
+	client.admin.approveAccessRequest( userId, type );
 export const rejectArtistAccess = ( userId ) =>
-	post( `extrachill/v1/admin/artist-access/${ userId }/reject` );
+	client.admin.rejectAccessRequest( userId );
 
 // Artist-User Relationships
-export const getArtistRelationships = ( view = 'artists', search = '' ) => {
-	const params = new URLSearchParams( { view, search } );
-	return get( `extrachill/v1/admin/artist-relationships?${ params }` );
-};
+export const getArtistRelationships = ( view, search ) =>
+	client.admin.listRelationships( view, search );
 export const linkUserToArtist = ( userId, artistId ) =>
-	post( 'extrachill/v1/admin/artist-relationships/link', { user_id: userId, artist_id: artistId } );
+	client.admin.linkRelationship( userId, artistId );
 export const unlinkUserFromArtist = ( userId, artistId ) =>
-	post( 'extrachill/v1/admin/artist-relationships/unlink', { user_id: userId, artist_id: artistId } );
-export const getOrphanedRelationships = () => get( 'extrachill/v1/admin/artist-relationships/orphans' );
+	client.admin.unlinkRelationship( userId, artistId );
+export const getOrphanedRelationships = () =>
+	client.admin.findOrphanRelationships();
 export const cleanupOrphan = ( userId, artistId ) =>
-	post( 'extrachill/v1/admin/artist-relationships/cleanup', { user_id: userId, artist_id: artistId } );
+	client.admin.cleanupOrphan( userId, artistId );
 
 // QR Code Generator
-export const generateQRCode = ( url ) =>
-	post( 'extrachill/v1/tools/qr-code', { url } );
+export const generateQRCode = ( url ) => client.admin.generateQrCode( url );
 
 // Lifetime Membership Management
-export const getLifetimeMemberships = ( search = '', page = 1 ) => {
-	const params = new URLSearchParams( { search, page } );
-	return get( `extrachill/v1/admin/lifetime-membership?${ params }` );
-};
+export const getLifetimeMemberships = ( search, page ) =>
+	client.admin.listLifetimeMembers( search, page );
 export const grantLifetimeMembership = ( userIdentifier ) =>
-	post( 'extrachill/v1/admin/lifetime-membership/grant', { user_identifier: userIdentifier } );
+	client.admin.grantLifetimeMembership( userIdentifier );
 export const revokeLifetimeMembership = ( userId ) =>
-	del( `extrachill/v1/admin/lifetime-membership/${ userId }` );
+	client.admin.revokeLifetimeMembership( userId );
 
 // Taxonomy Sync
 export const syncTaxonomies = ( taxonomies, targetSites ) =>
-	post( 'extrachill/v1/admin/taxonomies/sync', { taxonomies, target_sites: targetSites } );
+	client.admin.syncTaxonomies( taxonomies, targetSites );
 
 // Team Member Management
-export const getTeamMembers = ( search = '', page = 1 ) => {
-	const params = new URLSearchParams( { search, page } );
-	return get( `extrachill/v1/admin/team-members?${ params }` );
-};
-export const syncTeamMembers = () => post( 'extrachill/v1/admin/team-members/sync' );
+export const getTeamMembers = ( search, page ) =>
+	client.admin.listTeamMembers( search, page );
+export const syncTeamMembers = () => client.admin.syncTeamMembers();
 export const updateTeamMemberOverride = ( userId, action ) =>
-	post( `extrachill/v1/admin/team-members/${ userId }`, { action } );
+	client.admin.updateTeamMember( userId, action );
 
 // User Search (for relationship management)
-export const searchUsers = ( term ) => {
-	const params = new URLSearchParams( { term, context: 'admin' } );
-	return get( `extrachill/v1/users/search?${ params }` );
-};
+export const searchUsers = ( term ) =>
+	client.users.search( term, 'admin' );
 
 export default {
 	getConfig,
