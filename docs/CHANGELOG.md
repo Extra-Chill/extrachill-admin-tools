@@ -5,6 +5,11 @@
  The format is based on [Keep a Changelog](https://keepachangelog.com/en/1/0/0/),
  and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-03-04
+
+### Fixed
+- Rebuild release package so Composer vendor dependencies ship in deploy artifacts (enables QR generation primitive).
+
 ## [2.0.5] - 2026-02-13
 
 - Fix QR code generator preview and download not working due to API response field mismatch
