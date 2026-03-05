@@ -296,6 +296,10 @@ function extrachill_admin_tools_register_abilities() {
 						'description' => __( 'URL to encode in the QR code.', 'extrachill-admin-tools' ),
 						'format'      => 'uri',
 					),
+					'size' => array(
+						'type'        => 'integer',
+						'description' => __( 'QR code size in pixels (default: 1000, max: 2000).', 'extrachill-admin-tools' ),
+					),
 				),
 				'required'   => array( 'url' ),
 			),
