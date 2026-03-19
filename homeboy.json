@@ -1,0 +1,19 @@
+{
+  "auto_cleanup": false,
+  "changelog_target": "docs/CHANGELOG.md",
+  "extensions": {
+    "wordpress": {}
+  },
+  "id": "extrachill-admin-tools",
+  "remote_path": "wp-content/plugins/extrachill-admin-tools",
+  "version_targets": [
+    {
+      "file": "extrachill-admin-tools.php",
+      "pattern": "(?m)^\\s*\\*?\\s*Version:\\s*([0-9.]+)"
+    },
+    {
+      "file": "extrachill-admin-tools.php",
+      "pattern": "EXTRACHILL_ADMIN_TOOLS_VERSION',\\s*'([0-9.]+)'"
+    }
+  ]
+}
