@@ -10,10 +10,6 @@
 	// Header
 	&__header {
 		margin-bottom: 20px;
-		padding: 20px;
-		background: #fff;
-		border: 1px solid #ccd0d4;
-		border-radius: 4px;
 
 		h1 {
 			margin: 0 0 15px;
@@ -62,9 +58,6 @@
 	&__empty {
 		padding: 40px;
 		text-align: center;
-		background: #fff;
-		border: 1px solid #ccd0d4;
-		border-radius: 4px;
 
 		p {
 			margin: 0;
@@ -75,9 +68,6 @@
 
 	// Content area
 	&__content {
-		background: #fff;
-		border: 1px solid #ccd0d4;
-		border-radius: 4px;
 		padding: 20px;
 	}
 }
