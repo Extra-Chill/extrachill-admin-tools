@@ -5,6 +5,7 @@
  */
 
 import { useAdminTools } from './context/AdminToolsContext';
+import { BlockShell, Panel } from '@extrachill/components';
 import Header from './components/Header';
 import ToolTabs from './components/ToolTabs';
 import Notices from './components/Notices';
@@ -33,28 +34,28 @@ export default function App() {
 		: null;
 
 	return (
-		<div className="ec-admin-tools">
+		<BlockShell className="ec-admin-tools">
 			<Header />
 			<Notices />
 			<ToolTabs />
 
 			{ ! activeTool && availableTools.length > 0 && (
-				<div className="ec-admin-tools__welcome">
+				<Panel className="ec-admin-tools__welcome" compact>
 					<p>Select a tool from the tabs above to get started.</p>
-				</div>
+				</Panel>
 			) }
 
 			{ ! activeTool && availableTools.length === 0 && (
-				<div className="ec-admin-tools__empty">
+				<Panel className="ec-admin-tools__empty" compact>
 					<p>No tools available for the selected site.</p>
-				</div>
+				</Panel>
 			) }
 
 			{ ActiveToolComponent && (
-				<div className="ec-admin-tools__content">
+				<Panel className="ec-admin-tools__content" compact>
 					<ActiveToolComponent />
-				</div>
+				</Panel>
 			) }
-		</div>
+		</BlockShell>
 	);
 }

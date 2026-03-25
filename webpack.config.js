@@ -15,11 +15,4 @@ module.exports = {
 		...defaultConfig.output,
 		path: path.resolve( __dirname, 'build' ),
 	},
-	resolve: {
-		...defaultConfig.resolve,
-		alias: {
-			...( defaultConfig.resolve?.alias || {} ),
-			'@extrachill/components': path.resolve( __dirname, 'src/components/shared' ),
-		},
-	},
 };

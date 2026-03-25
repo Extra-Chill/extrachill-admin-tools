@@ -4,7 +4,7 @@
  * Tab navigation for available tools.
  */
 
-import { Button } from '@wordpress/components';
+import { Tabs } from '@extrachill/components';
 import { useAdminTools } from '../context/AdminToolsContext';
 
 export default function ToolTabs() {
@@ -15,17 +15,12 @@ export default function ToolTabs() {
 	}
 
 	return (
-		<div className="ec-admin-tools__tabs">
-			{ availableTools.map( ( tool ) => (
-				<Button
-					key={ tool.id }
-					variant={ activeTool === tool.id ? 'primary' : 'secondary' }
-					onClick={ () => setActiveTool( tool.id ) }
-					className="ec-admin-tools__tab"
-				>
-					{ tool.title }
-				</Button>
-			) ) }
-		</div>
+		<Tabs
+			tabs={ availableTools.map( ( tool ) => ( { id: tool.id, label: tool.title } ) ) }
+			active={ activeTool || availableTools[ 0 ]?.id }
+			onChange={ setActiveTool }
+			className="ec-admin-tools__tabs"
+			classPrefix="ec-admin-tools"
+		/>
 	);
 }

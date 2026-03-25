@@ -5,6 +5,7 @@
  */
 
 import { SelectControl } from '@wordpress/components';
+import { Panel, PanelHeader, FieldGroup } from '@extrachill/components';
 import { useAdminTools } from '../context/AdminToolsContext';
 
 export default function Header() {
@@ -16,20 +17,22 @@ export default function Header() {
 	} ) );
 
 	return (
-		<div className="ec-admin-tools__header">
-			<h1>Extra Chill Admin Tools</h1>
+		<Panel className="ec-admin-tools__header" compact>
+			<PanelHeader title="Extra Chill Admin Tools" />
 			<div className="ec-admin-tools__site-selector">
-				<SelectControl
-					label="Site Context"
-					value={ selectedSiteId }
-					options={ siteOptions }
-					onChange={ ( value ) => switchSite( parseInt( value, 10 ) ) }
-					__nextHasNoMarginBottom
-				/>
+				<FieldGroup label="Site Context">
+					<SelectControl
+						label="Site Context"
+						value={ selectedSiteId }
+						options={ siteOptions }
+						onChange={ ( value ) => switchSite( parseInt( value, 10 ) ) }
+						__nextHasNoMarginBottom
+					/>
+				</FieldGroup>
 				<span className="ec-admin-tools__site-hint">
 					Tools below will operate on the selected site.
 				</span>
 			</div>
-		</div>
+		</Panel>
 	);
 }
