@@ -1,62 +1,156 @@
 /**
  * Admin Tools API Client
  *
- * Delegates all calls to @extrachill/api-client via WpApiFetchTransport.
- * Exports match the original function names so tool components need zero changes.
+ * Migrated to wp-native-client (Abilities API) where abilities exist.
+ * Calls without ability equivalents fall back to direct apiFetch with
+ * REST paths — see TODO comments for follow-up ability registration.
+ *
+ * Part of M8 umbrella retirement (extrachill-app#38).
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import { ExtraChillClient } from '@extrachill/api-client';
-import { WpApiFetchTransport } from '@extrachill/api-client/wordpress';
+import { WPNativeClient } from 'wp-native-client';
+import { WpApiFetchTransport } from 'wp-native-client/wordpress';
 
 const transport = new WpApiFetchTransport( apiFetch );
-const client = new ExtraChillClient( transport );
+const client = new WPNativeClient( transport );
+
+// ── Helpers for fallback REST calls (no ability equivalent yet) ─────────
+
+/**
+ * Build a query string from an object of params.
+ * Skips undefined values.
+ */
+function buildQuery( params ) {
+	const entries = Object.entries( params ).filter(
+		( [ , v ] ) => v !== undefined
+	);
+	if ( entries.length === 0 ) {
+		return '';
+	}
+	const search = new URLSearchParams();
+	for ( const [ key, value ] of entries ) {
+		search.set( key, String( value ) );
+	}
+	return '?' + search.toString();
+}
+
+// ── Admin Tools API ─────────────────────────────────────────────────────
 
 const adminToolsApi = {
 	getConfig: () => window.ecAdminToolsConfig || {},
 
-	// Artist Access Requests
-	getArtistAccessRequests: () => client.admin.listAccessRequests(),
+	// ── Artist Access Requests (migrated → abilities) ───────────────────
+	getArtistAccessRequests: () =>
+		client.execute( 'extrachill/list-artist-access-requests' ),
 	approveArtistAccess: ( userId, type ) =>
-		client.admin.approveAccessRequest( userId, type ),
+		client.execute( 'extrachill/approve-artist-access', {
+			user_id: userId,
+			type,
+		} ),
 	rejectArtistAccess: ( userId ) =>
-		client.admin.rejectAccessRequest( userId ),
+		client.execute( 'extrachill/reject-artist-access', {
+			user_id: userId,
+		} ),
 
-	// Artist-User Relationships
+	// ── Artist-User Relationships ───────────────────────────────────────
+	// TODO: M8 follow-up — register abilities for artist-relationship
+	//       admin endpoints, then migrate these calls.
+	//       REST routes: extrachill/v1/admin/artist-relationships/*
 	getArtistRelationships: ( view, search ) =>
-		client.admin.listRelationships( view, search ),
+		apiFetch( {
+			path: `extrachill/v1/admin/artist-relationships${ buildQuery( {
+				view,
+				search,
+			} ) }`,
+		} ),
 	linkUserToArtist: ( userId, artistId ) =>
-		client.admin.linkRelationship( userId, artistId ),
+		apiFetch( {
+			path: 'extrachill/v1/admin/artist-relationships/link',
+			method: 'POST',
+			data: { user_id: userId, artist_id: artistId },
+		} ),
 	unlinkUserFromArtist: ( userId, artistId ) =>
-		client.admin.unlinkRelationship( userId, artistId ),
-	getOrphanedRelationships: () => client.admin.findOrphanRelationships(),
+		apiFetch( {
+			path: 'extrachill/v1/admin/artist-relationships/unlink',
+			method: 'POST',
+			data: { user_id: userId, artist_id: artistId },
+		} ),
+	getOrphanedRelationships: () =>
+		apiFetch( {
+			path: 'extrachill/v1/admin/artist-relationships/orphans',
+		} ),
 	cleanupOrphan: ( userId, artistId ) =>
-		client.admin.cleanupOrphan( userId, artistId ),
+		apiFetch( {
+			path: 'extrachill/v1/admin/artist-relationships/cleanup',
+			method: 'POST',
+			data: { user_id: userId, artist_id: artistId },
+		} ),
 
-	// QR Code Generator
-	generateQRCode: ( url ) => client.admin.generateQrCode( url ),
+	// ── QR Code Generator ───────────────────────────────────────────────
+	// TODO: M8 follow-up — register ability for QR code generation.
+	//       REST route: extrachill/v1/tools/qr-code
+	generateQRCode: ( url ) =>
+		apiFetch( {
+			path: 'extrachill/v1/tools/qr-code',
+			method: 'POST',
+			data: { url },
+		} ),
 
-	// Lifetime Membership Management
+	// ── Lifetime Membership Management (migrated → abilities) ───────────
+	// TODO: M8 follow-up — register ability for listing lifetime members.
+	//       REST route: extrachill/v1/admin/lifetime-membership
 	getLifetimeMemberships: ( search, page ) =>
-		client.admin.listLifetimeMembers( search, page ),
+		apiFetch( {
+			path: `extrachill/v1/admin/lifetime-membership${ buildQuery( {
+				search,
+				page,
+			} ) }`,
+		} ),
 	grantLifetimeMembership: ( userIdentifier ) =>
-		client.admin.grantLifetimeMembership( userIdentifier ),
+		client.execute( 'extrachill/grant-lifetime-membership', {
+			user_identifier: userIdentifier,
+		} ),
 	revokeLifetimeMembership: ( userId ) =>
-		client.admin.revokeLifetimeMembership( userId ),
+		client.execute( 'extrachill/revoke-lifetime-membership', {
+			user_id: userId,
+		} ),
 
-	// Taxonomy Sync
+	// ── Taxonomy Sync (migrated → ability) ──────────────────────────────
 	syncTaxonomies: ( taxonomies, targetSites ) =>
-		client.admin.syncTaxonomies( taxonomies, targetSites ),
+		client.execute( 'extrachill/sync-taxonomies', {
+			taxonomies,
+			target_sites: targetSites,
+		} ),
 
-	// Team Member Management
+	// ── Team Member Management (migrated → abilities) ───────────────────
+	// TODO: M8 follow-up — register ability for listing team members.
+	//       REST route: extrachill/v1/admin/team-members
 	getTeamMembers: ( search, page ) =>
-		client.admin.listTeamMembers( search, page ),
-	syncTeamMembers: () => client.admin.syncTeamMembers(),
+		apiFetch( {
+			path: `extrachill/v1/admin/team-members${ buildQuery( {
+				search,
+				page,
+			} ) }`,
+		} ),
+	syncTeamMembers: () =>
+		client.execute( 'extrachill/sync-team-members' ),
 	updateTeamMemberOverride: ( userId, action ) =>
-		client.admin.updateTeamMember( userId, action ),
+		client.execute( 'extrachill/manage-team-member', {
+			user_id: userId,
+			action,
+		} ),
 
-	// User Search (for relationship management)
-	searchUsers: ( term ) => client.users.search( term, 'admin' ),
+	// ── User Search ─────────────────────────────────────────────────────
+	// TODO: M8 follow-up — register ability for user search.
+	//       REST route: extrachill/v1/users/search
+	searchUsers: ( term ) =>
+		apiFetch( {
+			path: `extrachill/v1/users/search${ buildQuery( {
+				term,
+				context: 'admin',
+			} ) }`,
+		} ),
 };
 
 export const {
