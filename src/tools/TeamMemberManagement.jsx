@@ -81,11 +81,6 @@ export default function TeamMemberManagement() {
 			),
 		},
 		{
-			key: 'source',
-			label: 'Source',
-			render: ( value ) => <span className="ec-source">{ value }</span>,
-		},
-		{
 			key: 'actions',
 			label: 'Actions',
 			render: ( _, row ) => (
@@ -93,9 +88,8 @@ export default function TeamMemberManagement() {
 					value=""
 					options={ [
 						{ label: '-- Select Action --', value: '' },
-						{ label: 'Force Add', value: 'force_add' },
-						{ label: 'Force Remove', value: 'force_remove' },
-						{ label: 'Reset to Auto', value: 'reset_auto' },
+						{ label: 'Grant Team Role', value: 'force_add' },
+						{ label: 'Revoke Team Role', value: 'force_remove' },
 					] }
 					onChange={ ( action ) => {
 						if ( action ) {
@@ -112,16 +106,21 @@ export default function TeamMemberManagement() {
 		<div className="ec-tool ec-tool--team-management">
 			<div className="ec-tool__description">
 				<p>
-					Sync team members from the main site (extrachill.com) and manage
-					manual overrides for fired staff or community moderators.
+					Grant or revoke the <code>extra_chill_team</code> WordPress
+					role network-wide. The role is the source of truth for team
+					membership — granting it gives the user real WP capabilities
+					(upload_files, edit_posts, access_studio, etc.) on every
+					subsite in the Extra Chill network.
 				</p>
 			</div>
 
 			<div className="ec-tool__section">
-				<h3>Sync Team Members</h3>
+				<h3>Re-sync Team Role Across Network</h3>
 				<p>
-					Automatically set team member status for all users with
-					extrachill.com accounts. Manual overrides will be preserved.
+					Re-grants the team role on every subsite for every current
+					team member. Useful after adding a new subsite to the
+					network so existing team members get the role assignment
+					on the new site. Idempotent.
 				</p>
 				<Button
 					variant="primary"
@@ -133,7 +132,7 @@ export default function TeamMemberManagement() {
 							<Spinner /> Syncing...
 						</>
 					) : (
-						'Sync Team Members from Main Site'
+						'Re-sync Team Role Across Network'
 					) }
 				</Button>
 				{ syncReport && (
