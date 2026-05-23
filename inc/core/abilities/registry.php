@@ -112,7 +112,7 @@ function extrachill_admin_tools_register_abilities() {
 		'extrachill/manage-team-member',
 		array(
 			'label'               => __( 'Manage Team Member', 'extrachill-admin-tools' ),
-			'description'         => __( 'Force add, force remove, or reset a user\'s team member status.', 'extrachill-admin-tools' ),
+			'description'         => __( 'Grant or revoke the extra_chill_team WP role for a user, network-wide.', 'extrachill-admin-tools' ),
 			'category'            => 'extrachill-admin-tools',
 			'input_schema'        => array(
 				'type'       => 'object',
@@ -123,8 +123,8 @@ function extrachill_admin_tools_register_abilities() {
 					),
 					'action'  => array(
 						'type'        => 'string',
-						'description' => __( 'Action to take.', 'extrachill-admin-tools' ),
-						'enum'        => array( 'force_add', 'force_remove', 'reset_auto' ),
+						'description' => __( 'Action to take: force_add to grant the role, force_remove to revoke it.', 'extrachill-admin-tools' ),
+						'enum'        => array( 'force_add', 'force_remove' ),
 					),
 				),
 				'required'   => array( 'user_id', 'action' ),

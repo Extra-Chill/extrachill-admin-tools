@@ -123,7 +123,9 @@ const adminToolsApi = {
 			target_sites: targetSites,
 		} ),
 
-	// ── Team Member Management (migrated → abilities) ───────────────────
+	// ── Team Role Management ────────────────────────────────────────────
+	// The extra_chill_team WP role is the source of truth; these
+	// endpoints grant/revoke it network-wide.
 	// TODO: M8 follow-up — register ability for listing team members.
 	//       REST route: extrachill/v1/admin/team-members
 	getTeamMembers: ( search, page ) =>
