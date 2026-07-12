@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Extra Chill Admin Tools
- * Description: Centralized network admin tools for the Extra Chill platform ecosystem
+ * Description: Deprecated retirement shell; administrative capabilities moved to domain owners.
  * Version: 2.1.13
  * Author: Chris Huber
  * Author URI: https://chubes.net
@@ -20,11 +20,3 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'EXTRACHILL_ADMIN_TOOLS_VERSION', '2.1.13' );
-define( 'EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'EXTRACHILL_ADMIN_TOOLS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-
-// Admin settings (React mount point).
-require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/admin/admin-settings.php';
-
-// Abilities API integration.
-require_once EXTRACHILL_ADMIN_TOOLS_PLUGIN_DIR . 'inc/core/abilities.php';
