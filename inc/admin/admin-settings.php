@@ -15,11 +15,11 @@ add_action( 'network_admin_menu', 'extrachill_admin_tools_menu' );
 add_action( 'admin_enqueue_scripts', 'extrachill_admin_tools_enqueue_assets' );
 
 /**
- * Register Admin Tools menu item under Extra Chill Multisite.
+ * Register Admin Tools menu item under Extra Chill Network.
  */
 function extrachill_admin_tools_menu() {
 	add_submenu_page(
-		'extrachill-multisite',
+		defined( 'EXTRACHILL_NETWORK_MENU_SLUG' ) ? EXTRACHILL_NETWORK_MENU_SLUG : 'extrachill-network',
 		'Admin Tools',
 		'Admin Tools',
 		'manage_network_options',
@@ -34,7 +34,7 @@ function extrachill_admin_tools_menu() {
  * @param string $hook Current admin page hook.
  */
 function extrachill_admin_tools_enqueue_assets( $hook ) {
-	if ( 'extra-chill-multisite_page_extrachill-admin-tools' !== $hook ) {
+	if ( 'extra-chill-network_page_extrachill-admin-tools' !== $hook ) {
 		return;
 	}
 
