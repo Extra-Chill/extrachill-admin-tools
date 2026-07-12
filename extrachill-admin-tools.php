@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Extra Chill Admin Tools
  * Description: Deprecated retirement shell; administrative capabilities moved to domain owners.
- * Version: 2.1.13
+ * Version: 2.1.14
  * Author: Chris Huber
  * Author URI: https://chubes.net
  * License: GPL v2 or later
@@ -19,4 +19,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EXTRACHILL_ADMIN_TOOLS_VERSION', '2.1.13' );
+define( 'EXTRACHILL_ADMIN_TOOLS_VERSION', '2.1.14' );
