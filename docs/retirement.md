@@ -35,7 +35,7 @@ The retirement change removes Admin Tools ownership of:
 - QR generation implementation and its Endroid runtime path.
 - The six-tab UI source, shared UI components, API client, webpack configuration, npm package, and build script.
 
-The ability names and public REST/CLI response contracts are not retired. The prerequisite owner changes must preserve them before this change can merge.
+The remaining ability names and public REST/CLI response contracts are not retired. The unused taxonomy bulk-sync ability and REST route were later retired in favor of Network's on-demand `extrachill/project-network-term` primitive; prerequisite owner changes must preserve every other contract before this change can merge.
 
 ## Retained Compatibility
 
@@ -56,7 +56,6 @@ Run each check first with Admin Tools active and then network-deactivated. Resul
 | Team sync | Execute `extrachill/sync-team-members` as an authorized network operator | Existing result keys and role behavior are preserved. |
 | Team management | Execute `extrachill/manage-team-member` for grant and revoke against a test user | `extra_chill_team` role changes network-wide with the existing response shape. |
 | Membership | Execute grant and revoke abilities against a test user | Membership metadata and response shapes remain compatible. |
-| Taxonomy sync | Call the existing taxonomy REST route with valid taxonomy and target-site values | Sync completes without a REST-to-ability ownership loop. |
 | Artist access | List requests and exercise approval/rejection against test data | Workflow succeeds and redirects target an owner-native screen. |
 | Artist relationships | List, link, unlink, find orphans, and clean a test relationship | Owner-native workflow succeeds with no Admin Tools runtime dependency. |
 | Legacy navigation | Open the old network-admin `page=extrachill-admin-tools` URL | Network-owned temporary redirect reaches a valid owner-native destination. |
