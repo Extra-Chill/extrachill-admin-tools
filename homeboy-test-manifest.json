@@ -1,0 +1,8 @@
+{
+  "schema": "homeboy/test-manifest/v1",
+  "tests": {
+    "tests/plugin-shell-smoke.php": {
+      "environment": "standalone-php"
+    }
+  }
+}
